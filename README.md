@@ -3,6 +3,7 @@
 Note: Most of the Code in `screencap.js` comes from [ingress-ice](https://github.com/nibogd/ingress-ice) which isn't made by me. So code Credits of it goes in the most parts to `nibogd`. I only modified it for the Bot.
 
 Requires: **PhantomJS** (installation instructions below)
+
 Requires: **[hangoutsbot](https://github.com/hangoutsbot/hangoutsbot)**
 
 Get and post a screenshot of the Intel Map. 
