@@ -8,7 +8,10 @@ Requires: **[hangoutsbot](https://github.com/hangoutsbot/hangoutsbot)**
 Get and post a screenshot of the Intel Map. 
 
 ## Install
-To install the plugin you need to add the `__init__.py` and `screencap.js` into a subdirectory named `intel_screenbot` inside the plugin folder of your bot. Than you need to follow the Configuration part.
+To install the plugin you need to:
+1. Clone this repo into `<yourBotDir>/plugins/`
+2. Optional remove `README.md` `LICENSE` and `.gitignore`
+3. Follow Configuration.
 
 ## Configuration
 For using the Intel Screenbot you need to add the following to the config.json:
