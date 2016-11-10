@@ -79,7 +79,7 @@ function afterCookieLogin(IntelURL, search) {
         timeout: 1000,  // optional
         check: function () {
             return page.evaluate(function() {
-                if ($('#percent_text').textContent == "100") {
+                if ($('#percent_text').textContent == "99") {
                     return true;
                 }else{
                     return false;
