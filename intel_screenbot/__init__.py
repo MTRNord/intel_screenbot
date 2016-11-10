@@ -35,7 +35,7 @@ def _screencap(url, filename, SACSID, CSRF, search, bot, event):
         logger.debug("Exception: {}".format(e))
         process.kill()
     while True:
-            out = process.stdout.read(1)
+        out = process.stdout.read(1)
         if out:
             yield from bot.coro_send_message(event.conv_id, "<i>{}</i>".format(out))
     loop = asyncio.get_event_loop()
