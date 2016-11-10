@@ -39,7 +39,7 @@ def _screencap(url, filename, SACSID, CSRF, search, bot, event):
         if out:
             yield from bot.coro_send_message(event.conv_id, "<i>{}</i>".format(out))
     loop = asyncio.get_event_loop()
-    yield from asyncio.sleep(10
+    yield from asyncio.sleep(10)
     # read the resulting file into a byte array
     file_resource = yield from _open_file(filename)
     file_data = yield from loop.run_in_executor(None, file_resource.read)
