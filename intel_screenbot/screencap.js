@@ -73,31 +73,31 @@ function afterCookieLogin(IntelURL, search) {
         fs.remove('.iced_cookies');
       }
     }
-    waitFor({
-        debug: false,  // optional
-        interval: 0,  // optional
-        timeout: 1000,  // optional
-        check: function () {
-            return page.evaluate(function() {
-                if ($('#percent_text').textContent == "99") {
-                    return true;
-                }else{
-                    return false;
-                }
-            });
-        },
-        success: function () {
-            setTimeout(function() {
+    setTimeout(function() {
+        waitFor({
+            debug: false,  // optional
+            interval: 0,  // optional
+            timeout: 1000,  // optional
+            check: function () {
+                return page.evaluate(function() {
+                    if ($('#percent_text').textContent == "90") {
+                        return true;
+                    }else{
+                        return false;
+                    }
+                });
+            },
+            success: function () {
                 page.evaluate(function() {
                     document.querySelector("#filters_container").style.display= 'none';
                 });
                 hideDebris();
                 prepare('1920', '1080', search);
                 main();
-            }, "5000");
-        },
-        error: function () {} // optional
-    });
+            },
+            error: function () {} // optional
+        });
+    }, "5000");
   });
 }
 
