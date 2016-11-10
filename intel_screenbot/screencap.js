@@ -25,6 +25,23 @@ if (args.length === 1) {
 addCookies(SACSID,CSRF)
 afterCookieLogin(IntelURL, search)
 
+function waitFor ($config) {
+    $config._start = $config._start || new Date();
+
+    if ($config.timeout && new Date - $config._start > $config.timeout) {
+        if ($config.error) $config.error();
+        if ($config.debug) console.log('timedout ' + (new Date - $config._start) + 'ms');
+        return;
+    }
+
+    if ($config.check()) {
+        if ($config.debug) console.log('success ' + (new Date - $config._start) + 'ms');
+        return $config.success();
+    }
+
+    setTimeout(waitFor, $config.interval || 0, $config);
+}
+
 function addCookies(sacsid, csrf) {
   phantom.addCookie({
     name: 'SACSID',
@@ -56,14 +73,31 @@ function afterCookieLogin(IntelURL, search) {
         fs.remove('.iced_cookies');
       }
     }
-    setTimeout(function() {
-      page.evaluate(function() {
-          document.querySelector("#filters_container").style.display= 'none';
-      });
-      hideDebris();
-      prepare('1920', '1080', search);
-      main();
-    }, "5000");
+    waitFor({
+        debug: false,  // optional
+        interval: 0,  // optional
+        timeout: 1000,  // optional
+        check: function () {
+            return page.evaluate(function() {
+                if ($('#percent_text').textContent == "100") {
+                    return true;
+                }else{
+                    return false;
+                }
+            });
+        },
+        success: function () {
+            setTimeout(function() {
+                page.evaluate(function() {
+                    document.querySelector("#filters_container").style.display= 'none';
+                });
+                hideDebris();
+                prepare('1920', '1080', search);
+                main();
+            }, "5000");
+        },
+        error: function () {} // optional
+    });
   });
 }
 
