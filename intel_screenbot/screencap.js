@@ -82,6 +82,8 @@ function afterCookieLogin(IntelURL, search) {
                     if (document.querySelector('#percent_text').textContent == "90") {
                         if (!document.getElementById("loading_msg").style.display){
                             return true;
+                        }else{
+                            return false;
                         }
                     }else{
                         return false;
