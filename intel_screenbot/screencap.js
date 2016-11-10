@@ -276,6 +276,5 @@ function main() {
     addTimestamp(getDateTime(0));
     file = filepath;
     s(file);
-    phantom.exit();
   }, 5000);
 }
