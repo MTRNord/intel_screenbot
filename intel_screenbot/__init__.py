@@ -20,7 +20,6 @@ def _open_file(name):
 @asyncio.coroutine
 def _screencap(url, filename, SACSID, CSRF, search):
     logger.info("screencapping {} and saving as {}".format(url, filename))
-    #os.path.realpath(__file__)
     if search == False:
         command = ['phantomjs', 'hangupsbot/plugins/intel_screenbot/screencap.js', SACSID, CSRF, url, filename]
         process = subprocess.Popen(command, shell=False, stdout=subprocess.PIPE)
@@ -35,7 +34,6 @@ def _screencap(url, filename, SACSID, CSRF, search):
     except Exception as e:
         logger.debug("Exception: {}".format(e))
         process.kill()
-    yield from asyncio.sleep(5)
     loop = asyncio.get_event_loop()
     # read the resulting file into a byte array
     file_resource = yield from _open_file(filename)
