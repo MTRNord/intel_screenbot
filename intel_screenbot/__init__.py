@@ -18,7 +18,7 @@ def _open_file(name):
 
 
 @asyncio.coroutine
-def _screencap(url, filename, SACSID, CSRF, search):
+def _screencap(url, filename, SACSID, CSRF, search, bot, event):
     logger.info("screencapping {} and saving as {}".format(url, filename))
     if search == False:
         command = ['phantomjs', 'hangupsbot/plugins/intel_screenbot/screencap.js', SACSID, CSRF, url, filename]
@@ -35,6 +35,8 @@ def _screencap(url, filename, SACSID, CSRF, search):
         logger.debug("Exception: {}".format(e))
         process.kill()
     loop = asyncio.get_event_loop()
+    if output:
+        yield from bot.coro_send_message(event.conv_id, "<i>{}</i>".format(output))
     # read the resulting file into a byte array
     file_resource = yield from _open_file(filename)
     file_data = yield from loop.run_in_executor(None, file_resource.read)
@@ -124,7 +126,7 @@ def intel(bot, event, *args):
 
         try:
             loop = asyncio.get_event_loop()
-            image_data = yield from _screencap(url, filepath, SACSID, CSRF, search)
+            image_data = yield from _screencap(url, filepath, SACSID, CSRF, search, bot, event)
         except Exception as e:
             yield from bot.coro_send_message(event.conv_id, "<i>error getting screenshot</i>")
             logger.exception("screencap failed".format(url))
