@@ -77,7 +77,7 @@ function afterCookieLogin(IntelURL, search) {
         waitFor({
             debug: false,  // optional
             interval: 0,  // optional
-            timeout: 1000,  // optional
+            timeout: 5000,  // optional
             check: function () {
                 return page.evaluate(function() {
                     if (document.querySelector('#percent_text').textContent == "90") {
@@ -95,7 +95,15 @@ function afterCookieLogin(IntelURL, search) {
                 prepare('1920', '1080', search);
                 main();
             },
-            error: function () {} // optional
+            error: function () {
+                system.stdout.writeLine('map did not finish loading in time...');
+                page.evaluate(function() {
+                    document.querySelector("#filters_container").style.display= 'none';
+                });
+                hideDebris();
+                prepare('1920', '1080', search);
+                main();
+            } // optional
         });
     }, "5000");
   });
