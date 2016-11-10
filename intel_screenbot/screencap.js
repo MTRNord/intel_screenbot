@@ -76,10 +76,13 @@ function afterCookieLogin(IntelURL, search) {
     }
     setTimeout(function() {
         waitFor({
+            timeout: 10000,
             check: function () {
                 return page.evaluate(function() {
                     if (document.querySelector('#percent_text').textContent == "90") {
-                        return true;
+                        if (!document.getElementById("loading_msg").style.display){
+                            return true;
+                        }
                     }else{
                         return false;
                     }
