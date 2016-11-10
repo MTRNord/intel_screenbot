@@ -22,11 +22,11 @@ def _screencap(url, filename, SACSID, CSRF, search):
     logger.info("screencapping {} and saving as {}".format(url, filename))
     #os.path.realpath(__file__)
     if search == False:
-        command = "phantomjs hangupsbot/plugins/intel_screenbot/screencap.js '" + SACSID + "' '" + CSRF + "' '" + url + "' '" +  filename + "'"
-        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+        command = ['phantomjs', 'hangupsbot/plugins/intel_screenbot/screencap.js', SACSID, CSRF, url, filename]
+        process = subprocess.Popen(command, shell=False, stdout=subprocess.PIPE)
     else:
-        command = "phantomjs hangupsbot/plugins/intel_screenbot/screencap.js '" + SACSID + "' '" + CSRF + "' '" + url + "' '" +  filename + "' '" + search + "'"
-        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+        command = ['phantomjs', 'hangupsbot/plugins/intel_screenbot/screencap.js', SACSID, CSRF, url, filename, search]
+        process = subprocess.Popen(command, shell=False, stdout=subprocess.PIPE)
 
     # make sure phantomjs has time to download/process the page
     # but if we get nothing after 30 sec, just move on
