@@ -31,15 +31,15 @@ def _screencap(url, filename, SACSID, CSRF, search, bot, event):
     # but if we get nothing after 30 sec, just move on
     try:
         output, errors = process.communicate(timeout=30)
-        while True:
-            out = process.stdout.read(1)
-        if out:
-            yield from bot.coro_send_message(event.conv_id, "<i>{}</i>".format(out))
     except Exception as e:
         logger.debug("Exception: {}".format(e))
         process.kill()
+    while True:
+            out = process.stdout.read(1)
+        if out:
+            yield from bot.coro_send_message(event.conv_id, "<i>{}</i>".format(out))
     loop = asyncio.get_event_loop()
-    yield from asyncio.sleep(25)
+    yield from asyncio.sleep(10
     # read the resulting file into a byte array
     file_resource = yield from _open_file(filename)
     file_data = yield from loop.run_in_executor(None, file_resource.read)
