@@ -122,7 +122,8 @@ def intel(bot, event, *args):
 
         try:
             loop = asyncio.get_event_loop()
-            image_data = yield from _screencap(url, filepath, SACSID, CSRF, search, bot, event)
+            task = _screencap(url, filepath, SACSID, CSRF, search, bot, event)
+            image_data = loop.run_until_complete(task)
         except Exception as e:
             yield from bot.coro_send_message(event.conv_id, "<i>error getting screenshot</i>")
             logger.exception("screencap failed".format(url))
