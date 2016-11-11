@@ -22,16 +22,16 @@ def _screencap(url, filename, SACSID, CSRF, search, bot, event):
     logger.info("screencapping {} and saving as {}".format(url, filename))
     if search == False:
         command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filename + '"'
-        process = yield from asyncio.create_subprocess_shell(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        process = asyncio.create_subprocess_shell(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     else:
         command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filename + '" "' + search + '"'
-        process = yield from asyncio.create_subprocess_shell(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        process = asyncio.create_subprocess_shell(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     # make sure phantomjs has time to download/process the page
     # but if we get nothing after 30 sec, just move on
     loop = asyncio.get_event_loop()
     task = loop.create_task(process.communicate())
-    exitcode = yield from process.wait()
+    #exitcode = yield from process.wait()
     yield from loop.run_until_complete(task)
     # read the resulting file into a byte array
     file_resource = yield from _open_file(filename)
@@ -123,7 +123,7 @@ def intel(bot, event, *args):
         try:
             loop = asyncio.get_event_loop()
             task = _screencap(url, filepath, SACSID, CSRF, search, bot, event)
-            image_data = loop.run_until_complete(task)
+            image_data = yield from loop.run_until_complete(task)
         except Exception as e:
             yield from bot.coro_send_message(event.conv_id, "<i>error getting screenshot</i>")
             logger.exception("screencap failed".format(url))
