@@ -34,8 +34,8 @@ def _screencap(url, filename, SACSID, CSRF, search, bot, event):
     except Exception as e:
         logger.debug("Exception: {}".format(e))
         process.kill()
-        yield from proc.wait()
-    exitcode = yield from proc.wait()
+        yield from process.wait()
+    exitcode = yield from process.wait()
     loop = asyncio.get_event_loop()
     yield from asyncio.sleep(10)
     # read the resulting file into a byte array
