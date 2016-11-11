@@ -35,7 +35,7 @@ def _screencap(url, filename, SACSID, CSRF, search, bot, event):
     # but if we get nothing after 30 sec, just move on
     loop = asyncio.get_event_loop()
     for f in asyncio.as_completed(shell): # print in the order they finish
-        print(await f)
+        print(f)
     # read the resulting file into a byte array
     file_resource = yield from _open_file(filename)
     file_data = yield from loop.run_in_executor(None, file_resource.read)
