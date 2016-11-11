@@ -279,4 +279,5 @@ function main() {
     file = filepath;
     s(file);
   }, 5000);
+  phantom.exit();
 }
