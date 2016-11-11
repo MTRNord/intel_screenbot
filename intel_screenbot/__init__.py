@@ -30,12 +30,12 @@ def _screencap(url, filename, SACSID, CSRF, search, bot, event):
     # make sure phantomjs has time to download/process the page
     # but if we get nothing after 30 sec, just move on
     try:
-        output, errors = process.communicate(timeout=30)
+        output, errors = yield from process.communicate(timeout=30)
     except Exception as e:
         logger.debug("Exception: {}".format(e))
         process.kill()
     while True:
-        out = process.stdout.read(1)
+        out = yield from process.stdout.read(1)
         if out:
             yield from bot.coro_send_message(event.conv_id, "<i>{}</i>".format(out))
     loop = asyncio.get_event_loop()
