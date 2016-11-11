@@ -30,7 +30,7 @@ def _screencap(url, filename, SACSID, CSRF, search, bot, event):
     # make sure phantomjs has time to download/process the page
     # but if we get nothing after 30 sec, just move on
     loop = asyncio.get_event_loop()
-    task = loop.create_task(process.communicate(timeout=30))
+    task = loop.create_task(process.communicate())
     exitcode = yield from process.wait()
     yield from loop.run_until_complete(task)
     # read the resulting file into a byte array
