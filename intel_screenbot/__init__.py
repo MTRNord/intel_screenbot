@@ -16,10 +16,8 @@ def _open_file(name):
     logger.debug("opening screenshot file: {}".format(name))
     return open(name, 'rb')
 
-@asyncio.coroutine
-def _get_lines(shell_command):
-    p = await asyncio.create_subprocess_shell(shell_command,
-            stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+async def _get_lines(shell_command):
+    p = await asyncio.create_subprocess_shell(shell_command, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
     return (await p.communicate())[0].splitlines()
 
 @asyncio.coroutine
