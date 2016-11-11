@@ -77,7 +77,7 @@ function afterCookieLogin(IntelURL, search) {
     }
     setTimeout(function() {
         waitFor({
-            timeout: 60000,
+            timeout: 120000,
             check: function () {
                 return page.evaluate(function() {
                     if (document.querySelector('#percent_text').textContent == "90") {
