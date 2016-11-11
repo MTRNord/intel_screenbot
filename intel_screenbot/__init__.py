@@ -11,14 +11,13 @@ def _initialise(bot):
     plugins.register_user_command(["intel"])
     plugins.register_admin_command(["setintel", "clearintel"])
 
-@asyncio.coroutine
 def _open_file(name):
     logger.debug("opening screenshot file: {}".format(name))
     return open(name, 'rb')
 
 async def _get_lines(shell_command):
-    p = await asyncio.create_subprocess_shell(shell_command, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-    return (await p.communicate())[0].splitlines()
+    p = asyncio.create_subprocess_shell(shell_command, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+    return (p.communicate())[0].splitlines()
 
 @asyncio.coroutine
 def _screencap(url, filename, SACSID, CSRF, search, bot, event):
