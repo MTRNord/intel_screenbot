@@ -2,7 +2,7 @@ import asyncio, io, logging, os, re, time, tempfile
 import subprocess
 import plugins
 import re
-
+from asyncio import subprocess
 
 logger = logging.getLogger(__name__)
 
@@ -22,22 +22,20 @@ def _screencap(url, filename, SACSID, CSRF, search, bot, event):
     logger.info("screencapping {} and saving as {}".format(url, filename))
     if search == False:
         command = ['phantomjs', 'hangupsbot/plugins/intel_screenbot/screencap.js', SACSID, CSRF, url, filename]
-        process = subprocess.Popen(command, shell=False, stdout=subprocess.PIPE)
+        process = yield from asyncio.create_subprocess_exec(command, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     else:
         command = ['phantomjs', 'hangupsbot/plugins/intel_screenbot/screencap.js', SACSID, CSRF, url, filename, search]
-        process = subprocess.Popen(command, shell=False, stdout=subprocess.PIPE)
+        process = yield from asyncio.create_subprocess_exec(command, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     # make sure phantomjs has time to download/process the page
     # but if we get nothing after 30 sec, just move on
     try:
-        output, errors = yield from process.communicate(timeout=30)
+        stdout, _ = yield from process.communicate(timeout=30)
     except Exception as e:
         logger.debug("Exception: {}".format(e))
         process.kill()
-    while True:
-        out = yield from process.stdout.read(1)
-        if out:
-            yield from bot.coro_send_message(event.conv_id, "<i>{}</i>".format(out))
+        yield from proc.wait()
+    exitcode = yield from proc.wait()
     loop = asyncio.get_event_loop()
     yield from asyncio.sleep(10)
     # read the resulting file into a byte array
