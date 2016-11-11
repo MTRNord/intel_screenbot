@@ -33,11 +33,9 @@ def _screencap(url, filepath, filename, SACSID, CSRF, search, bot, event):
         exitcode, stdout = loop.run_until_complete(task)
     else:
         command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '" "' + search + '"'
-        yield from bot.coro_send_message(event.conv_id, "<i>Before: Doing stuff!!!!</i>")
         task = _get_lines(command)
-        task = asyncio.wait_for(task, 60.0, loop=loop)
+        task = asyncio.wait_for(task, 120.0, loop=loop)
         exitcode, stdout = yield from task
-        yield from bot.coro_send_message(event.conv_id, "<i>After: Doing stuff!!!!</i>")
 
     # read the resulting file into a byte array
     file_resource = yield from _open_file(filepath)
