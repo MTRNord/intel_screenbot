@@ -21,10 +21,10 @@ def _open_file(name):
 def _screencap(url, filename, SACSID, CSRF, search, bot, event):
     logger.info("screencapping {} and saving as {}".format(url, filename))
     if search == False:
-        command = ['phantomjs', 'hangupsbot/plugins/intel_screenbot/screencap.js', SACSID, CSRF, url, filename]
+        command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filename + '"'
         process = yield from asyncio.create_subprocess_exec(command, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     else:
-        command = ['phantomjs', 'hangupsbot/plugins/intel_screenbot/screencap.js', SACSID, CSRF, url, filename, search]
+        command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filename + '" "' + search + '"'
         process = yield from asyncio.create_subprocess_exec(command, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     # make sure phantomjs has time to download/process the page
