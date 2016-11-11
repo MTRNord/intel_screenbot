@@ -10,39 +10,45 @@ logger = logging.getLogger(__name__)
 def _initialise(bot):
     plugins.register_user_command(["intel"])
     plugins.register_admin_command(["setintel", "clearintel"])
-
+    
+@asyncio.coroutine
 def _open_file(name):
     logger.debug("opening screenshot file: {}".format(name))
     return open(name, 'rb')
 
-async def _get_lines(shell_command):
-    p = asyncio.create_subprocess_shell(shell_command, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-    return (p.communicate())[0].splitlines()
+@asyncio.coroutine
+def _get_lines(shell_command):
+    p = yield from asyncio.create_subprocess_shell(shell_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    stdout, stderr = yield from p.communicate()
+    return p.returncode, stdout
 
 @asyncio.coroutine
-def _screencap(url, filename, SACSID, CSRF, search, bot, event):
-    logger.info("screencapping {} and saving as {}".format(url, filename))
-    if search == False:
-        command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filename + '"'
-        shell = [get_lines(command)]
-        #process = asyncio.create_subprocess_shell(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    else:
-        command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filename + '" "' + search + '"'
-        shell = [get_lines(command)]
-        #process = asyncio.create_subprocess_shell(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-    # make sure phantomjs has time to download/process the page
-    # but if we get nothing after 30 sec, just move on
+def _screencap(url, filepath, filename, SACSID, CSRF, search, bot, event):
     loop = asyncio.get_event_loop()
-    for f in asyncio.as_completed(shell): # print in the order they finish
-        print(f)
+    logger.info("screencapping {} and saving as {}".format(url, filepath))
+    if search == False:
+        command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '"'
+        task = _get_lines(command)
+        task = asyncio.wait_for(task, 180.0, loop=self.loop)
+        exitcode, stdout = loop.run_until_complete(task)
+    else:
+        command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '" "' + search + '"'
+        yield from bot.coro_send_message(event.conv_id, "<i>Before: Doing stuff!!!!</i>")
+        task = _get_lines(command)
+        task = asyncio.wait_for(task, 60.0, loop=loop)
+        exitcode, stdout = yield from task
+        yield from bot.coro_send_message(event.conv_id, "<i>After: Doing stuff!!!!</i>")
+
     # read the resulting file into a byte array
-    file_resource = yield from _open_file(filename)
+    file_resource = yield from _open_file(filepath)
     file_data = yield from loop.run_in_executor(None, file_resource.read)
     image_data = yield from loop.run_in_executor(None, io.BytesIO, file_data)
-    # yield from loop.run_in_executor(None, os.remove, filename)
-
-    return image_data
+    try:
+        image_id = yield from bot._client.upload_image(image_data, filename=filename)
+        yield from bot._client.sendchatmessage(event.conv.id_, None, image_id=image_id)
+    except Exception as e:
+        yield from bot.coro_send_message(event.conv_id, "<i>error uploading screenshot</i>")
+        logger.exception("upload failed".format(url))
 
 
 def setintel(bot, event, *args):
@@ -125,15 +131,8 @@ def intel(bot, event, *args):
 
         try:
             loop = asyncio.get_event_loop()
-            image_data = yield from loop.run_until_complete(_screencap(url, filepath, SACSID, CSRF, search, bot, event))
+            image_data = yield from _screencap(url, filepath, filename, SACSID, CSRF, search, bot, event)
         except Exception as e:
             yield from bot.coro_send_message(event.conv_id, "<i>error getting screenshot</i>")
             logger.exception("screencap failed".format(url))
             return
-            
-        try:
-            image_id = yield from bot._client.upload_image(image_data, filename=filename)
-            yield from bot._client.sendchatmessage(event.conv.id_, None, image_id=image_id)
-        except Exception as e:
-            yield from bot.coro_send_message(event.conv_id, "<i>error uploading screenshot</i>")
-            logger.exception("upload failed".format(url))
