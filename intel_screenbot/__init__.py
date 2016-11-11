@@ -34,7 +34,7 @@ def _screencap(url, filepath, filename, SACSID, CSRF, search, bot, event):
     else:
         command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '" "' + search + '"'
         task = _get_lines(command)
-        task = asyncio.wait_for(task, 120.0, loop=loop)
+        task = asyncio.wait_for(task, 180.0, loop=loop)
         exitcode, stdout = yield from task
 
     # read the resulting file into a byte array
