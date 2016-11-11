@@ -19,6 +19,7 @@ if (args.length === 1) {
       var filepath  = args[4];
       var search  = args[5];
       console.log(search)
+      system.stdout.writeLine(filepath);
     }
   }
 }
@@ -76,7 +77,7 @@ function afterCookieLogin(IntelURL, search) {
     }
     setTimeout(function() {
         waitFor({
-            timeout: 10000,
+            timeout: 60000,
             check: function () {
                 return page.evaluate(function() {
                     if (document.querySelector('#percent_text').textContent == "90") {
@@ -133,9 +134,11 @@ function storeCookies() {
 
 function s(file) {
   page.render(file);
+  phantom.exit(0);
 }
 
 function hideDebris() {
+    system.stdout.writeLine('hideDebris...');
     page.evaluate(function() {
       if (document.querySelector('#comm'))             {document.querySelector('#comm').style.display = 'none';}
       if (document.querySelector('#player_stats'))     {document.querySelector('#player_stats').style.display = 'none';}
@@ -162,6 +165,7 @@ function hideDebris() {
  * @param {number} heightz
  */
 function prepare(widthz, heightz, search) {
+    system.stdout.writeLine('prepare...');
     if (search == "nix") {
         var selector = "#map_canvas";
         setElementBounds(selector);
@@ -265,6 +269,7 @@ function addTimestamp(time) {
  * Main function.
  */
 function main() {
+  system.stdout.writeLine('main...');
   if (true){
     page.evaluate(function() {
       if (document.getElementById('watermark-ice')) {
@@ -279,5 +284,4 @@ function main() {
     file = filepath;
     s(file);
   }, 5000);
-  phantom.exit();
 }
