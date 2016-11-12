@@ -21,15 +21,25 @@ For using the Intel Screenbot you need to add the following to the config.json:
 
 ```
  "intel_screenbot": {
-    "SACSID": "YOUR SACSID",
-    "CSRF": "YOUR CSRF"
-  }
+   "SACSID": "YOUR SACSID",
+   "CSRF": "YOUR CSRF",
+   "plugin_dirs": [
+     "http://iitc.jonatkins.com/release/plugins"
+   ]
+ }
 ```  
 
 According to the official INSTALL Documention of the hangoutbot you will find the config.json in `/<username>/.local/share/hangupsbot/`
 (NOTE! add an comma behind the last element of the config.json and add it befor the outer element closes)
 
 Also you need to add `intel_screenbot` to the plugins.
+
+## How to add gitlab plugin_dirs
+
+1. First open in browser: `https://gitlab.com/api/v3/projects/search/:RepoName`
+2. copy the number in `id`
+3. add `http://gitlab.com/api/v3/projects/:ID/repository/tree` to `plugin_dirs`
+4. add `"gitlab_token":"YOUR_GITLAB_API_TOKEN"` to `intel_screenbot`
 
 ## How to get SACSID and CSRF
 You should look at the Documentation of [ingress-ice](https://github.com/nibogd/ingress-ice/wiki/Cookies-Authentication)
