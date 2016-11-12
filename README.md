@@ -36,10 +36,18 @@ Also you need to add `intel_screenbot` to the plugins.
 
 ## How to add gitlab to plugin_dirs
 
-1. First open in browser: `https://gitlab.com/api/v3/projects/search/:RepoName`
+1. Open in browser: `https://gitlab.com/api/v3/projects/search/:REPO_NAME`
 2. copy the number in `id`
 3. add `http://gitlab.com/api/v3/projects/:ID/repository/tree` to `plugin_dirs`
 4. add `"gitlab_token":"YOUR_GITLAB_API_TOKEN"` to `intel_screenbot`
+
+*Note: repos are currently locked to master branch*
+
+## How to add github to plugins_dir
+
+1. add `https://api.github.com/repos/:REPO_USER/:REPO_NAME/git/trees/master?recursive=1`
+
+*Note: repos are currently locked to master branch*
 
 ## How to get SACSID and CSRF
 You should look at the Documentation of [ingress-ice](https://github.com/nibogd/ingress-ice/wiki/Cookies-Authentication)
