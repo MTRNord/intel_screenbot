@@ -14,7 +14,7 @@ To install the plugin you need to:
 1. Go into `<yourBotDir>/plugins/`
 2. Clone this repo into `intel_screenbot`
 3. Optional remove `README.md` `LICENSE` and `.gitignore` from `<yourBotDir>/plugins/intel_screenbot`
-4. Run pip3 install -r requirements.txt
+4. Run `pip3 install -r requirements.txt`
 5. Follow Configuration.
 
 ## Configuration
