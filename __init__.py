@@ -258,8 +258,8 @@ def iitc(bot, event, *args):
                                     plugin = url_helper[x]
                                     plugins.append(value)
                             x += 1
-            
-        logger.info(plugin)
+        else:
+             plugin = ''
         try:
             loop = asyncio.get_event_loop()
             image_data = yield from _screencap("iitc", url, filepath, filename, SACSID, CSRF, plugins, search, bot, event)
