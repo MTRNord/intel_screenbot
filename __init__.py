@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 def _initialise(bot):
     plugins.register_user_command(["intel", "iitc"])
-    plugins.register_admin_command(["setintel", "clearintel", "show_iitcplugins"])
+    plugins.register_admin_command(["setintel", "clearintel", "show_iitcplugins", "set_iitcplugins", "clear_iitcplugins"])
     _get_iitc_plugins(bot)
         
     
@@ -82,7 +82,7 @@ def _get_lines(shell_command):
     return p.returncode, stdout
 
 @asyncio.coroutine
-def _screencap(maptype, url, filepath, filename, SACSID, CSRF, search, bot, event):
+def _screencap(maptype, url, filepath, filename, SACSID, CSRF, plugins, search, bot, event):
     loop = asyncio.get_event_loop()
     logger.info("screencapping {} and saving as {}".format(url, filepath))
     if search == False:
@@ -188,7 +188,7 @@ def intel(bot, event, *args):
 
         try:
             loop = asyncio.get_event_loop()
-            image_data = yield from _screencap("intel", url, filepath, filename, SACSID, CSRF, search, bot, event)
+            image_data = yield from _screencap("intel", url, filepath, filename, SACSID, CSRF, "", search, bot, event)
         except Exception as e:
             yield from bot.coro_send_message(event.conv_id, "<i>error getting screenshot</i>")
             logger.exception("screencap failed".format(url))
@@ -241,10 +241,13 @@ def iitc(bot, event, *args):
         filename = event.conv_id + "." + str(time.time()) +".png"
         filepath = tempfile.NamedTemporaryFile(prefix=event.conv_id, suffix=".png", delete=False).name
         logger.debug("temporary screenshot file: {}".format(filepath))
-
+        
+        if bot.conversation_memory_get(event.conv_id, 'iitc_plugins'):
+            plugins = bot.conversation_memory_get(event.conv_id, 'iitc_plugins')
+            
         try:
             loop = asyncio.get_event_loop()
-            image_data = yield from _screencap("iitc", url, filepath, filename, SACSID, CSRF, search, bot, event)
+            image_data = yield from _screencap("iitc", url, filepath, filename, SACSID, CSRF, plugins, search, bot, event)
         except Exception as e:
             yield from bot.coro_send_message(event.conv_id, "<i>error getting screenshot</i>")
             logger.exception("screencap failed".format(url))
@@ -258,3 +261,23 @@ def show_iitcplugins(bot, event, *args):
                 if attribute == "name":
                     plugin_names.append(value)
         yield from bot.coro_send_to_user_and_conversation(event.user.id_.chat_id, event.conv_id, "<i><b>IITC Plugins:</b><br> {}</i>".format(', <br>'.join(str(i) for i in plugin_names)), _("<i><b>{}</b>, I've sent you the plugins ;)</i>").format(event.user.full_name))
+
+def set_iitcplugins(bot, event, *args):
+    if not bot.conversation_memory_get(event.conv_id, 'iitc_plugins') is None:
+        html = "<i><b>{}</b> plugins already set for this conversation!<br /><br />".format(event.user.full_name)
+        html += "<i>Clear them first with /bot clear_iitcplugins before setting new ones."
+        yield from bot.coro_send_message(event.conv, html)
+    else:
+        bot.conversation_memory_set(event.conv_id, 'iitc_plugins', ', '.join(args))
+        html = "<i><b>{}</b> updated plugins".format(event.user.full_name)
+        yield from bot.coro_send_message(event.conv, html)
+        
+def clear_iitcplugins(bot, event, *args):
+    if bot.conversation_memory_get(event.conv_id, 'iitc_plugins') is None:
+        html = "<i><b>{}</b> nothing to clear for this conversation".format(event.user.full_name)
+        yield from bot.coro_send_message(event.conv, html)
+
+    else:
+        bot.conversation_memory_set(event.conv_id, 'iitc_plugins', None)
+        html = "<i><b>{}</b> plugins cleared for this conversation!<br />".format(event.user.full_name)
+        yield from bot.coro_send_message(event.conv, html)
