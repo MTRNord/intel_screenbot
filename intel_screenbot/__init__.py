@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 def _initialise(bot):
-    plugins.register_user_command(["intel"])
+    plugins.register_user_command(["intel", "iitc"])
     plugins.register_admin_command(["setintel", "clearintel"])
     
 @asyncio.coroutine
@@ -23,16 +23,16 @@ def _get_lines(shell_command):
     return p.returncode, stdout
 
 @asyncio.coroutine
-def _screencap(url, filepath, filename, SACSID, CSRF, search, bot, event):
+def _screencap(maptype, url, filepath, filename, SACSID, CSRF, search, bot, event):
     loop = asyncio.get_event_loop()
     logger.info("screencapping {} and saving as {}".format(url, filepath))
     if search == False:
-        command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '"'
+        command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '"'
         task = _get_lines(command)
         task = asyncio.wait_for(task, 180.0, loop=self.loop)
         exitcode, stdout = loop.run_until_complete(task)
     else:
-        command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '" "' + search + '"'
+        command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '" "' + search + '"'
         task = _get_lines(command)
         task = asyncio.wait_for(task, 180.0, loop=loop)
         exitcode, stdout = yield from task
@@ -129,8 +129,65 @@ def intel(bot, event, *args):
 
         try:
             loop = asyncio.get_event_loop()
-            image_data = yield from _screencap(url, filepath, filename, SACSID, CSRF, search, bot, event)
+            image_data = yield from _screencap("intel", url, filepath, filename, SACSID, CSRF, search, bot, event)
         except Exception as e:
             yield from bot.coro_send_message(event.conv_id, "<i>error getting screenshot</i>")
             logger.exception("screencap failed".format(url))
             return
+        
+def iitc(bot, event, *args):
+    """get a screenshot of a user provided URL or the default URL of the hangout. 
+    """
+                                    
+    if args:
+        if len(args) > 1:
+            url = ' '.join(str(i) for i in args)
+        else:
+            url = args[0]
+    else:
+        url = bot.conversation_memory_get(event.conv_id, 'IntelURL')
+                                    
+    if bot.config.exists(["intel_screenbot", "SACSID"]):
+        SACSID = bot.config.get_by_path(["intel_screenbot", "SACSID"])
+    else:
+        html = "<i><b>{}</b> No Intel SACSID Cookie has been added to config. Unable to authenticate".format(event.user.full_name)
+        yield from bot.coro_send_message(event.conv, html)
+    if bot.config.exists(["intel_screenbot", "CSRF"]):
+        CSRF = bot.config.get_by_path(["intel_screenbot", "CSRF"])
+    else:
+        html = "<i><b>{}</b> No Intel CSRF Cookie has been added to config. Unable to authenticate".format(event.user.full_name)
+        yield from bot.coro_send_message(event.conv, html)
+        
+    if url is None:
+        html = "<i><b>{}</b> No Intel URL has been set for screenshots.".format(event.user.full_name)
+        yield from bot.coro_send_message(event.conv, html)
+                                    
+    else:        
+        if re.match(r'^[a-zA-Z]+://', url):
+            search = False
+            ZoomSearch = re.finditer(r"(?:&z=).*", url)
+            for matchNum, zoomlevel_raw in enumerate(ZoomSearch):
+                matchNum = matchNum + 1
+            zoomlevel_clean = zoomlevel_raw.group()
+            zoomlevel = zoomlevel_clean[3:][:2]
+            if zoomlevel.isdigit():
+                yield from bot.coro_send_message(event.conv_id, "<i>intel map at zoom level "+ zoomlevel + " requested, please wait...</i>")
+            else:
+                yield from bot.coro_send_message(event.conv_id, "<i>intel map at last zoom level requested, please wait...</i>")
+        else:
+            search = url
+            logger.info(search);
+            url = 'https://www.ingress.com/intel'
+            yield from bot.coro_send_message(event.conv_id, "<i>intel map is searching " + search + " and screenshooting as requested, please wait...</i>")
+        filename = event.conv_id + "." + str(time.time()) +".png"
+        filepath = tempfile.NamedTemporaryFile(prefix=event.conv_id, suffix=".png", delete=False).name
+        logger.debug("temporary screenshot file: {}".format(filepath))
+
+        try:
+            loop = asyncio.get_event_loop()
+            image_data = yield from _screencap("iitc", url, filepath, filename, SACSID, CSRF, search, bot, event)
+        except Exception as e:
+            yield from bot.coro_send_message(event.conv_id, "<i>error getting screenshot</i>")
+            logger.exception("screencap failed".format(url))
+            return
+
