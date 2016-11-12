@@ -262,7 +262,7 @@ def iitc(bot, event, *args):
              plugin = ''
         try:
             loop = asyncio.get_event_loop()
-            image_data = yield from _screencap("iitc", url, filepath, filename, SACSID, CSRF, plugins, search, bot, event)
+            image_data = yield from _screencap("iitc", url, filepath, filename, SACSID, CSRF, plugin, search, bot, event)
         except Exception as e:
             yield from bot.coro_send_message(event.conv_id, "<i>error getting screenshot</i>")
             logger.exception("screencap failed".format(url))
