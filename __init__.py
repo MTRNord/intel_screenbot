@@ -13,12 +13,7 @@ logger = logging.getLogger(__name__)
 def _initialise(bot):
     plugins.register_user_command(["intel", "iitc"])
     plugins.register_admin_command(["setintel", "clearintel"])
-    plugins = _get_iitc_plugins(bot)
-    if bot.memory.exists(["iitc_plugins"]):
-        bot.memory.pop_by_path(["iitc_plugins"])
-        bot.memory.set_by_path(["iitc_plugins"], plugins)
-    else:
-        bot.memory.set_by_path(["iitc_plugins"], plugins)
+    _get_iitc_plugins(bot)
         
     
 @asyncio.coroutine
@@ -75,8 +70,12 @@ def _get_iitc_plugins(bot):
                 item = {"name": file.split('/', file.count('/'))[-1].replace(ext, ''), "url": file}
             data.append(item)
 
-    jsonData=json.dumps(data)
-    return jsonData
+    iitc_plugins = json.dumps(data)
+    if bot.memory.exists(["iitc_plugins"]):
+        bot.memory.pop_by_path(["iitc_plugins"])
+        bot.memory.set_by_path(["iitc_plugins"], iitc_plugins)
+    else:
+        bot.memory.set_by_path(["iitc_plugins"], iitc_plugins)
 
 @asyncio.coroutine
 def _get_lines(shell_command):
