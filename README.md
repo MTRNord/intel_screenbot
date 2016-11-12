@@ -12,9 +12,10 @@ Get and post a screenshot of the Intel Map.
 To install the plugin you need to:
 
 1. Go into `<yourBotDir>/plugins/`
-1. Clone this repo into `intel_screenbot`
-2. Optional remove `README.md` `LICENSE` and `.gitignore` from `<yourBotDir>/plugins/intel_screenbot`
-3. Follow Configuration.
+2. Clone this repo into `intel_screenbot`
+3. Optional remove `README.md` `LICENSE` and `.gitignore` from `<yourBotDir>/plugins/intel_screenbot`
+4. Run pip3 install -r requirements.txt
+5. Follow Configuration.
 
 ## Configuration
 For using the Intel Screenbot you need to add the following to the config.json:
