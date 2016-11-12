@@ -1,3 +1,6 @@
+from bs4 import BeautifulSoup
+import requests
+import json
 import asyncio, io, logging, os, re, time, tempfile
 import subprocess
 import plugins
@@ -15,6 +18,58 @@ def _initialise(bot):
 def _open_file(name):
     logger.debug("opening screenshot file: {}".format(name))
     return open(name, 'rb')
+
+@asyncio.coroutine
+def _parse_onlineRepos(url, ext=''):
+    logger.debug("parsing github or gitlab or http(s)")
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36'
+    }
+    page = requests.get(url, headers=headers).text
+    if 'gitlab.com' in url:
+        files = []
+        for json_page in json.loads(page):
+            for attribute, value in json_page.items():
+                if attribute == "name":
+                    if value.endswith(ext):
+                        files.append(url.replace("/tree/", "/blobs/master") + "&filepath="  + value)
+        return files
+    elif 'github.com' in url:
+        files = []
+        for attribute, value in json.loads(page).items():
+            if attribute == "tree":
+                for tree in value:
+                    for attribute, value in tree.items():
+                        if attribute == "path":
+                            if value.endswith(ext):
+                                files.append(url.replace("https://api.github.com/repos/", "https://raw.githubusercontent.com/").replace("git/trees/",'').replace("master?recursive=1","master/") + value)
+        return files
+    else:
+        soup = BeautifulSoup(page, 'html.parser')
+        return [url + '/' + node.get('href') for node in soup.find_all('a') if node.get('href').endswith(ext)]
+    
+@asyncio.coroutine
+def _get_iitc_plugins(bot):
+    logger.debug("getting availible plugins")
+    if bot.config.exists(["intel_screenbot", "gitlab_token"]):
+        token = bot.config.get_by_path(["intel_screenbot", "gitlab_token"])
+    url = bot.config.get_by_path(["intel_screenbot", "plugin_dirs"])
+    ext = '.user.js'
+    data=[]
+    for url in url_config:
+        if "gitlab.com" in url:
+            url = url + '?private_token=' + token
+        for file in listFD(url, ext):
+            if "gitlab.com" in url:
+                item = {"name": file.split('=', file.count('='))[-1].replace(ext, ''), "url": file}
+            elif 'github.com' in url:
+                item = {"name": file.split('/', file.count('/'))[-1].replace(ext, ''), "url": file}
+            else:
+                item = {"name": file.split('/', file.count('/'))[-1].replace(ext, ''), "url": file}
+            data.append(item)
+
+    jsonData=json.dumps(data)
+    return jsonData
 
 @asyncio.coroutine
 def _get_lines(shell_command):
