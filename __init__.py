@@ -253,7 +253,8 @@ def iitc(bot, event, *args):
 def show_iitcplugins(bot, event, *args):
     if bot.memory.exists(["iitc_plugins"]):
         plugin_names = []
-        for attribute, value in json.loads(bot.memory.get_by_path(["iitc_plugins"])).items():
-            if attribute == "name":
-                plugin_names.append(value)
-        yield from bot.coro_send_message(event.conv_id, "<i>IITC Plugins: {}</i>".format(', '.join(str(i) for i in plugin_names)))
+        for plugin_objects in bot.memory.get_by_path(["iitc_plugins"]):
+            for attribute, value in plugin_objects.items():
+                if attribute == "name":
+                    plugin_names.append(value)
+        yield from bot.coro_send_message(event.conv_id, "<i><b>IITC Plugins:</b> {}</i>".format(', <br>'.join(str(i) for i in plugin_names)))
