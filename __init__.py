@@ -86,12 +86,12 @@ def _screencap(maptype, url, filepath, filename, SACSID, CSRF, plugins, search, 
     loop = asyncio.get_event_loop()
     logger.info("screencapping {} and saving as {}".format(url, filepath))
     if search == False:
-        command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '"'
+        command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '" "' + plugins + '"'
         task = _get_lines(command)
         task = asyncio.wait_for(task, 180.0, loop=self.loop)
         exitcode, stdout = loop.run_until_complete(task)
     else:
-        command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '" "' + search + '"'
+        command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '" "' + search + '" "' + plugins + '"'
         task = _get_lines(command)
         task = asyncio.wait_for(task, 180.0, loop=loop)
         exitcode, stdout = yield from task
@@ -243,8 +243,23 @@ def iitc(bot, event, *args):
         logger.debug("temporary screenshot file: {}".format(filepath))
         
         if bot.conversation_memory_get(event.conv_id, 'iitc_plugins'):
-            plugins = bot.conversation_memory_get(event.conv_id, 'iitc_plugins')
+            plugin_names = bot.conversation_memory_get(event.conv_id, 'iitc_plugins').split(", ")
+            if bot.memory.exists(["iitc_plugins"]):
+                plugins = []
+                for plugin_objects in bot.memory.get_by_path(["iitc_plugins"]):
+                    url_helper = []
+                    x = 0
+                    for attribute, value in plugin_objects.items():
+                        for plugin_name in plugin_names:
+                            if attribute  == "url":
+                                url_helper.append(value)
+                            if attribute  == "name":
+                                if value == plugin_name:
+                                    plugin = url_helper[x]
+                                    plugins.append(value)
+                            x++
             
+        logger.info(plugin)
         try:
             loop = asyncio.get_event_loop()
             image_data = yield from _screencap("iitc", url, filepath, filename, SACSID, CSRF, plugins, search, bot, event)
