@@ -68,7 +68,7 @@ def _get_iitc_plugins(bot):
                 item = {"name": file.split('/', file.count('/'))[-1].replace(ext, ''), "url": file}
             data.append(item)
 
-    iitc_plugins = json.dumps(data)
+    iitc_plugins = data
     if bot.memory.exists(["iitc_plugins"]):
         bot.memory.pop_by_path(["iitc_plugins"])
         bot.memory.set_by_path(["iitc_plugins"], iitc_plugins)
