@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 def _initialise(bot):
     plugins.register_user_command(["intel", "iitc"])
-    plugins.register_admin_command(["setintel", "clearintel"])
+    plugins.register_admin_command(["setintel", "clearintel", "show_iitcplugins"])
     _get_iitc_plugins(bot)
         
     
@@ -250,3 +250,10 @@ def iitc(bot, event, *args):
             logger.exception("screencap failed".format(url))
             return
 
+def show_iitcplugins(bot, event, *args):
+    if bot.memory.exists(["iitc_plugins"]):
+        plugin_names = []
+        for attribute, value in json.loads(bot.memory.get_by_path(["iitc_plugins"])).items():
+            if attribute == "name":
+                plugin_names.append(value)
+        yield from bot.coro_send_message(event.conv_id, "<i>IITC Plugins: {}</i>".format(', '.join(str(i) for i in plugin_names)))
