@@ -257,4 +257,4 @@ def show_iitcplugins(bot, event, *args):
             for attribute, value in plugin_objects.items():
                 if attribute == "name":
                     plugin_names.append(value)
-        yield from bot.coro_send_to_user(event.user_id, "<i><b>IITC Plugins:</b> {}</i>".format(', <br>'.join(str(i) for i in plugin_names)))
+        yield from bot.coro_send_to_user_and_conversation(event.user.id_.chat_id, event.conv_id, "<i><b>IITC Plugins:</b> {}</i>".format(', <br>'.join(str(i) for i in plugin_names)), _("<i>{}, I've sent you the plugins ;)</i>").format(event.user.full_name))
