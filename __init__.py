@@ -13,6 +13,13 @@ logger = logging.getLogger(__name__)
 def _initialise(bot):
     plugins.register_user_command(["intel", "iitc"])
     plugins.register_admin_command(["setintel", "clearintel"])
+    plugins = _get_iitc_plugins(bot)
+    if bot.memory.exists(["iitc_plugins"]):
+        bot.memory.pop_by_path(["iitc_plugins"])
+        bot.memory.set_by_path(["iitc_plugins"], plugins)
+    else:
+        bot.memory.set_by_path(["iitc_plugins"], plugins)
+        
     
 @asyncio.coroutine
 def _open_file(name):
