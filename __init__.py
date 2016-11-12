@@ -257,7 +257,7 @@ def iitc(bot, event, *args):
                                 if value == plugin_name:
                                     plugin = url_helper[x]
                                     plugins.append(value)
-                            x++
+                            x += 1
             
         logger.info(plugin)
         try:
