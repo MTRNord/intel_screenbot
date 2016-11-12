@@ -34,7 +34,7 @@ According to the official INSTALL Documention of the hangoutbot you will find th
 
 Also you need to add `intel_screenbot` to the plugins.
 
-## How to add gitlab plugin_dirs
+## How to add gitlab to plugin_dirs
 
 1. First open in browser: `https://gitlab.com/api/v3/projects/search/:RepoName`
 2. copy the number in `id`
