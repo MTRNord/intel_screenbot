@@ -11,8 +11,9 @@ Get and post a screenshot of the Intel Map.
 ## Install
 To install the plugin you need to:
 
-1. Clone this repo into `<yourBotDir>/plugins/`
-2. Optional remove `README.md` `LICENSE` and `.gitignore`
+1. Go into `<yourBotDir>/plugins/`
+1. Clone this repo into `intel_screenbot`
+2. Optional remove `README.md` `LICENSE` and `.gitignore` from `<yourBotDir>/plugins/intel_screenbot`
 3. Follow Configuration.
 
 ## Configuration
