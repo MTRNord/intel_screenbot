@@ -179,8 +179,8 @@ function prepare(widthz, heightz, search) {
             water.style.marginTop = '0';
             water.style.paddingTop = '0';
             water.style.left = '0';
-            water.style.width = w;
-            water.style.height = h;
+            water.style.width = w + 'px';
+            water.style.height = h + 'px';
             document.querySelectorAll('body')[0].appendChild(water);
           }, widthz, heightz);
           var selector = "#viewport-ice";
@@ -207,8 +207,8 @@ function prepare(widthz, heightz, search) {
             water.style.marginTop = '0';
             water.style.paddingTop = '0';
             water.style.left = '0';
-            water.style.width = w;
-            water.style.height = h;
+            water.style.width = w + 'px';
+            water.style.height = h + 'px';
             document.querySelectorAll('body')[0].appendChild(water);
           }, widthz, heightz);
           var selector = "#viewport-ice";
