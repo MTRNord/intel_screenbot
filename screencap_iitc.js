@@ -195,7 +195,7 @@ function prepare(widthz, heightz, search) {
                 e.which = 13;
                 e.keyCode = 13;
                 $("#search").trigger(e);
-                document.querySelector(".searchquery")[1][0].click();
+                window.setTimeout(function() {$('.searchquery > :nth-child(2)').children()[0].click();}, 1000);
             }
         }, search);
         window.setTimeout(function() {
