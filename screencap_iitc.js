@@ -107,7 +107,7 @@ function afterCookieLogin(IntelURL, search) {
                         e.which = 13;
                         e.keyCode = 13;
                         $("#search").trigger(e);
-                        window.setTimeout(function() {$('.searchquery > :nth-child(2)').children()[0].click();}, 1000);
+                        window.setTimeout(function() {$('.searchquery > :nth-child(2)').children()[0].click();}, 2000);
                     }
                 }, search);
             }
@@ -133,7 +133,7 @@ function afterCookieLogin(IntelURL, search) {
                     main();
                 } // optional
             });
-        }, "3000");
+        }, "5000");
     }, "5000");
   });
 }
