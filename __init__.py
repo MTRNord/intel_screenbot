@@ -37,7 +37,7 @@ def _replace(file_path, pattern, subst):
 
 def _parse_onlineRepos(url, ext=''):
     logger.debug("parsing github or gitlab or http(s)")
-    page = requests.get(url, headers=headers).text
+    page = requests.get(url).text
     if 'gitlab.com' in url:
         files = []
         for json_page in json.loads(page):
