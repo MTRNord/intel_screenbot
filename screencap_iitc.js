@@ -194,7 +194,6 @@ function s(file) {
 }
 
 function hideDebris() {
-    system.stdout.writeLine('hideDebris...');
     window.setTimeout(function() {
       page.evaluate(function() {
         if (document.querySelector('#chat'))                      {document.querySelector('#chat').style.display = 'none';}
@@ -205,6 +204,7 @@ function hideDebris() {
         if (document.querySelector('#scrollwrapper'))             {document.querySelector('#scrollwrapper').style.display = 'none';}
         if (document.querySelector('.leaflet-control-container')) {document.querySelector('.leaflet-control-container').style.display = 'none';}
       });
+    }, 2000);
 }
 
 /**
@@ -215,7 +215,6 @@ function hideDebris() {
  * @param {number} heightz
  */
 function prepare(widthz, heightz, search) {
-    system.stdout.writeLine('prepare...');
     if (search == "nix") {
         window.setTimeout(function() {
           page.evaluate(function(w, h) {
