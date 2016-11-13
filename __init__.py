@@ -160,6 +160,8 @@ def intel(bot, event, *args):
                 url = url.replace('"', '')
         else:
             url = args[0]
+            if '"' in url:
+                url = url.replace('"', '')
     else:
         url = bot.conversation_memory_get(event.conv_id, 'IntelURL')
                                     
@@ -219,6 +221,8 @@ def iitc(bot, event, *args):
                 url = url.replace('"', '')
         else:
             url = args[0]
+            if '"' in url:
+                url = url.replace('"', '')
     else:
         url = bot.conversation_memory_get(event.conv_id, 'IntelURL')
                                     
