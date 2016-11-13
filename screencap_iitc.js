@@ -98,19 +98,19 @@ function afterCookieLogin(IntelURL, search) {
             document.head.insertBefore(script, document.head.lastChild);
         });
         loadIitcPlugin('http://iitc.jonatkins.com/release/plugins/canvas-render.user.js');
-        if (search != "nix") {
-            page.evaluate(function(search) {
-                if (document.querySelector('#search')){
-                    document.getElementById("search").value=search;
-                    var e = jQuery.Event("keypress");
-                    e.which = 13;
-                    e.keyCode = 13;
-                    $("#search").trigger(e);
-                    window.setTimeout(function() {$('.searchquery > :nth-child(2)').children()[0].click();}, 1000);
-                }
-            }, search);
-        }
         setTimeout(function() {
+            if (search != "nix") {
+                page.evaluate(function(search) {
+                    if (document.querySelector('#search')){
+                        document.getElementById("search").value=search;
+                        var e = jQuery.Event("keypress");
+                        e.which = 13;
+                        e.keyCode = 13;
+                        $("#search").trigger(e);
+                        window.setTimeout(function() {$('.searchquery > :nth-child(2)').children()[0].click();}, 1000);
+                    }
+                }, search);
+            }
             waitFor({
                 timeout: 120000,
                 check: function () {
