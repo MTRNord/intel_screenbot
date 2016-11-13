@@ -141,7 +141,7 @@ function afterCookieLogin(IntelURL, search) {
             timeout: 120000,
             check: function () {
                 return page.evaluate(function() {
-                    if (document.querySelector('.map').text.indexOf('100') != -1)) {
+                    if (document.querySelector('.map').text.indexOf('100') != -1) {
                         return true;
                     }else{
                         return false;
