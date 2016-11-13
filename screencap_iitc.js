@@ -93,7 +93,7 @@ function afterCookieLogin(IntelURL, search) {
         });
         var script = document.createElement('script');
         script.type='text/javascript';
-        script.src='hangoutsbot/plugins/total-conversion-build.user.js';
+        script.src='total-conversion-build.user.js';
         document.head.insertBefore(script, document.head.lastChild);
       });
     setTimeout(function() {
