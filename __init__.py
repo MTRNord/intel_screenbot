@@ -156,6 +156,8 @@ def intel(bot, event, *args):
     if args:
         if len(args) > 1:
             url = ' '.join(str(i) for i in args)
+            if '"' in url:
+                url = url.replace('"', '')
         else:
             url = args[0]
     else:
@@ -213,6 +215,8 @@ def iitc(bot, event, *args):
     if args:
         if len(args) > 1:
             url = ' '.join(str(i) for i in args)
+            if '"' in url:
+                url = url.replace('"', '')
         else:
             url = args[0]
     else:
