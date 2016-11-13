@@ -279,11 +279,11 @@ def iitc(bot, event, *args):
                 
         #iitc render fix
         r = requests.get('https://secure.jonatkins.com/iitc/release/total-conversion-build.user.js', stream=True)
-        with open('total-conversion-build.user.js', 'wb') as f:
+        with open('hangupsbot/plugins/intel_screenbot/total-conversion-build.user.js', 'wb') as f:
             for chunk in r.iter_content(chunk_size=1024): 
                 if chunk: # filter out keep-alive new chunks
                     f.write(chunk)
-        _replace('total-conversion-build.user.js', '//L_PREFER_CANVAS = false;', 'L_PREFER_CANVAS = true;')
+        _replace('hangupsbot/plugins/intel_screenbot/total-conversion-build.user.js', '//L_PREFER_CANVAS = false;', 'L_PREFER_CANVAS = true;')
         
         try:
             loop = asyncio.get_event_loop()
