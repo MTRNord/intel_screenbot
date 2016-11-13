@@ -76,28 +76,25 @@ function afterCookieLogin(IntelURL, search) {
         fs.remove('.iced_cookies');
       }
     }
-    var iitcJS = fs.read('hangupsbot/plugins/intel_screenbot/total-conversion-build.user.js');
-    page.evaluate(function(itcJS) {
-    localStorage['ingress.intelmap.layergroupdisplayed'] = JSON.stringify({
-      "Unclaimed Portals":Boolean(1 === 1),
-      "Level 1 Portals":Boolean(1 === 1),
-      "Level 2 Portals":Boolean((1 <= 2) && (8 >= 2)),
-      "Level 3 Portals":Boolean((1 <= 3) && (8 >= 3)),
-      "Level 4 Portals":Boolean((1 <= 4) && (8 >= 4)),
-      "Level 5 Portals":Boolean((1 <= 5) && (8 >= 5)),
-      "Level 6 Portals":Boolean((1 <= 6) && (8 >= 6)),
-      "Level 7 Portals":Boolean((1 <= 7) && (8 >= 7)),
-      "Level 8 Portals":Boolean(8 === 8),
-      "DEBUG Data Tiles":false,
-      "Artifacts":true,
-      "Ornaments":true
-    });
-    var script = document.createElement('script');
-    script.type='text/javascript';
-    script.innerHTML=iitcJS;
-    document.head.insertBefore(script, document.head.lastChild);
-    }, iitcJS);
     setTimeout(function() {
+        var iitcJS = fs.read('hangupsbot/plugins/intel_screenbot/total-conversion-build.user.js');
+        page.evaluate(function(itcJS) {
+            localStorage['ingress.intelmap.layergroupdisplayed'] = JSON.stringify({
+              "Unclaimed Portals":Boolean(1 === 1),
+              "Level 1 Portals":Boolean(1 === 1),
+              "Level 2 Portals":Boolean((1 <= 2) && (8 >= 2)),
+              "Level 3 Portals":Boolean((1 <= 3) && (8 >= 3)),
+              "Level 4 Portals":Boolean((1 <= 4) && (8 >= 4)),
+              "Level 5 Portals":Boolean((1 <= 5) && (8 >= 5)),
+              "Level 6 Portals":Boolean((1 <= 6) && (8 >= 6)),
+              "Level 7 Portals":Boolean((1 <= 7) && (8 >= 7)),
+              "Level 8 Portals":Boolean(8 === 8),
+              "DEBUG Data Tiles":false,
+              "Artifacts":true,
+              "Ornaments":true
+            });
+            $('head').append('<script type="text/javascript">'+ iitcJS + '</script>');
+        }, iitcJS);
         waitFor({
             timeout: 120000,
             check: function () {
