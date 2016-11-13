@@ -20,6 +20,19 @@ def _initialise(bot):
 def _open_file(name):
     logger.debug("opening screenshot file: {}".format(name))
     return open(name, 'rb')
+@asyncio.coroutine
+def _replace(file_path, pattern, subst):
+    #Create temp file
+    fh, abs_path = mkstemp()
+    with open(abs_path,'w') as new_file:
+        with open(file_path) as old_file:
+            for line in old_file:
+                new_file.write(line.replace(pattern, subst))
+    close(fh)
+    #Remove original file
+    remove(file_path)
+    #Move new file
+    move(abs_path, file_path)
 
 def _parse_onlineRepos(url, ext=''):
     logger.debug("parsing github or gitlab or http(s)")
@@ -205,6 +218,7 @@ def intel(bot, event, *args):
             yield from bot.coro_send_message(event.conv_id, "<i>error getting screenshot</i>")
             logger.exception("screencap failed".format(url))
             return
+                
         
 def iitc(bot, event, *args):
     """get a screenshot of a user provided URL or the default URL of the hangout. 
@@ -264,6 +278,15 @@ def iitc(bot, event, *args):
                             plugins.append(plugin_objects["url"])
         else:
              plugins = ''
+                
+        #iitc render fix
+        r = requests.get('https://secure.jonatkins.com/iitc/release/total-conversion-build.user.js', stream=True)
+        with open('hangoutsbot/plugins/total-conversion-build.user.js', 'wb') as f:
+            for chunk in r.iter_content(chunk_size=1024): 
+                if chunk: # filter out keep-alive new chunks
+                    f.write(chunk)
+        _replace('hangoutsbot/plugins/total-conversion-build.user.js', '//L_PREFER_CANVAS = false;', 'L_PREFER_CANVAS = true;')
+        
         try:
             loop = asyncio.get_event_loop()
             image_data = yield from _screencap("iitc", url, filepath, filename, SACSID, CSRF, json.dumps(plugins), search, bot, event)
