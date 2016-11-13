@@ -98,6 +98,18 @@ function afterCookieLogin(IntelURL, search) {
             document.head.insertBefore(script, document.head.lastChild);
         });
         loadIitcPlugin('http://iitc.jonatkins.com/release/plugins/canvas-render.user.js');
+        if (search != "nix") {
+            page.evaluate(function(search) {
+                if (document.querySelector('#search')){
+                    document.getElementById("search").value=search;
+                    var e = jQuery.Event("keypress");
+                    e.which = 13;
+                    e.keyCode = 13;
+                    $("#search").trigger(e);
+                    window.setTimeout(function() {$('.searchquery > :nth-child(2)').children()[0].click();}, 1000);
+                }
+            }, search);
+        }
         waitFor({
             timeout: 120000,
             check: function () {
@@ -111,12 +123,12 @@ function afterCookieLogin(IntelURL, search) {
             },
             success: function () {
                 hideDebris();
-                prepare('1920', '1080', search);
+                prepare('1920', '1080');
                 main();
             },
             error: function () {
                 hideDebris();
-                prepare('1920', '1080', search);
+                prepare('1920', '1080');
                 main();
             } // optional
         });
@@ -178,8 +190,7 @@ function hideDebris() {
  * @param {number} widthz
  * @param {number} heightz
  */
-function prepare(widthz, heightz, search) {
-    if (search == "nix") {
+function prepare(widthz, heightz) {
         window.setTimeout(function() {
           page.evaluate(function(w, h) {
             $("span:contains(' Google Roads')").prev().click();
@@ -197,35 +208,6 @@ function prepare(widthz, heightz, search) {
           var selector = "#viewport-ice";
           setElementBounds(selector);
         }, 4000);
-    }else{
-        page.evaluate(function(search) {
-            if (document.querySelector('#search')){
-                document.getElementById("search").value=search;
-                var e = jQuery.Event("keypress");
-                e.which = 13;
-                e.keyCode = 13;
-                $("#search").trigger(e);
-                window.setTimeout(function() {$('.searchquery > :nth-child(2)').children()[0].click();}, 1000);
-            }
-        }, search);
-        window.setTimeout(function() {
-          page.evaluate(function(w, h) {
-            $("span:contains(' Google Roads')").prev().click();
-            var water = document.createElement('p');
-            water.id='viewport-ice';
-            water.style.position = 'absolute';
-            water.style.top = '0';
-            water.style.marginTop = '0';
-            water.style.paddingTop = '0';
-            water.style.left = '0';
-            water.style.width = w + 'px';
-            water.style.height = h + 'px';
-            document.querySelectorAll('body')[0].appendChild(water);
-          }, widthz, heightz);
-          var selector = "#viewport-ice";
-          setElementBounds(selector);
-        }, 4000);
-    }
 }
 
 /**
