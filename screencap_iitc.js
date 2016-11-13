@@ -66,7 +66,6 @@ function setMinMax(min, max) {
     return document.querySelectorAll('.level_notch.selected')[0];
   });
   if (parseInt(minAvailable.id[9], 10) > min) {
-    announce('The minimal portal level is too low for current zoom, using default.');
   } else {
     var rect = page.evaluate(function() {
       return document.querySelectorAll('.level_notch.selected')[0].getBoundingClientRect();
