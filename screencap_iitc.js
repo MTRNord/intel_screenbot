@@ -5,21 +5,21 @@ var fs = require('fs');
 if (args.length === 1) {
     console.log('Try to pass some args when invoking this script!');
 } else {
-  if (args.length === 5){
+  if (args.length === 6){
       var SACSID  = args[1];
       var CSRF  = args[2];
       var IntelURL  = args[3];
       var filepath  = args[4];
+      var plugins  = args[5];
       var search  = 'nix';
   }else{
-    if (args.length === 6){
+    if (args.length === 7){
       var SACSID  = args[1];
       var CSRF  = args[2];
       var IntelURL  = args[3];
       var filepath  = args[4];
       var search  = args[5];
-      console.log(search)
-      system.stdout.writeLine(filepath);
+      var plugins  = args[6];
     }
   }
 }
@@ -61,6 +61,47 @@ function addCookies(sacsid, csrf) {
   });
 }
 
+function setMinMax(min, max) {
+  var minAvailable = page.evaluate(function() {
+    return document.querySelectorAll('.level_notch.selected')[0];
+  });
+  if (parseInt(minAvailable.id[9], 10) > min) {
+    announce('The minimal portal level is too low for current zoom, using default.');
+  } else {
+    var rect = page.evaluate(function() {
+      return document.querySelectorAll('.level_notch.selected')[0].getBoundingClientRect();
+    });
+    page.sendEvent('click', rect.left + rect.width / 2, rect.top + rect.height / 2);
+    window.setTimeout(function() {
+      var rect1 = page.evaluate(function(min) {
+        return document.querySelector('#level_low' + min).getBoundingClientRect();
+      }, min);
+      page.sendEvent('click', rect1.left + rect1.width / 2, rect1.top + rect1.height / 2);
+      if (max === 8) {
+        page.evaluate(function() {
+          document.querySelector('#filters_container').style.display = 'none';
+        });
+      }
+    }, 2000);
+  }
+  if (max < 8) {
+    window.setTimeout(function() {
+      var rect2 = page.evaluate(function() {
+        return document.querySelectorAll('.level_notch.selected')[1].getBoundingClientRect();
+      });
+      page.sendEvent('click', rect2.left + rect2.width / 2, rect2.top + rect2.height / 2);
+      window.setTimeout(function() {
+        var rect3 = page.evaluate(function(min) {
+          return document.querySelector('#level_high' + min).getBoundingClientRect();
+        }, max);
+        page.sendEvent('click', rect3.left + rect3.width / 2, rect3.top + rect3.height / 2);
+        page.evaluate(function() {
+          document.querySelector('#filters_container').style.display = 'none';
+        });
+      }, 2000);
+    }, 4000);
+  }
+}
 
 /**
  * Does all stuff needed after cookie authentication
@@ -69,12 +110,32 @@ function addCookies(sacsid, csrf) {
 function afterCookieLogin(IntelURL, search) {
   page.open(IntelURL, function(status) {
     if (status !== 'success') {quit('unable to connect to remote server')}
-
+    page.injectJs('https://code.jquery.com/jquery-3.1.1.min.js');
     if(!isSignedIn()) {
       if(fs.exists('.iced_cookies')) {
         fs.remove('.iced_cookies');
       }
     }
+      page.evaluate(function(min, max) {
+        localStorage['ingress.intelmap.layergroupdisplayed'] = JSON.stringify({
+          "Unclaimed Portals":Boolean(1 === 1),
+          "Level 1 Portals":Boolean(1 === 1),
+          "Level 2 Portals":Boolean((1 <= 2) && (8 >= 2)),
+          "Level 3 Portals":Boolean((1 <= 3) && (8 >= 3)),
+          "Level 4 Portals":Boolean((1 <= 4) && (8 >= 4)),
+          "Level 5 Portals":Boolean((1 <= 5) && (8 >= 5)),
+          "Level 6 Portals":Boolean((1 <= 6) && (8 >= 6)),
+          "Level 7 Portals":Boolean((1 <= 7) && (8 >= 7)),
+          "Level 8 Portals":Boolean(8 === 8),
+          "DEBUG Data Tiles":false,
+          "Artifacts":true,
+          "Ornaments":true
+        });
+        var script = document.createElement('script');
+        script.type='text/javascript';
+        script.src='https://secure.jonatkins.com/iitc/release/total-conversion-build.user.js';
+        document.head.insertBefore(script, document.head.lastChild);
+      });
     setTimeout(function() {
         waitFor({
             timeout: 120000,
@@ -92,18 +153,13 @@ function afterCookieLogin(IntelURL, search) {
                 });
             },
             success: function () {
-                page.evaluate(function() {
-                    document.querySelector("#filters_container").style.display= 'none';
-                });
+                setMinMax(1, 8);
                 hideDebris();
                 prepare('1920', '1080', search);
                 main();
             },
             error: function () {
-                system.stdout.writeLine('map did not finish loading in time...');
-                page.evaluate(function() {
-                    document.querySelector("#filters_container").style.display= 'none';
-                });
+                setMinMax(1, 8);
                 hideDebris();
                 prepare('1920', '1080', search);
                 main();
@@ -139,22 +195,16 @@ function s(file) {
 
 function hideDebris() {
     system.stdout.writeLine('hideDebris...');
-    page.evaluate(function() {
-      if (document.querySelector('#comm'))             {document.querySelector('#comm').style.display = 'none';}
-      if (document.querySelector('#player_stats'))     {document.querySelector('#player_stats').style.display = 'none';}
-      if (document.querySelector('#game_stats'))       {document.querySelector('#game_stats').style.display = 'none';}
-      if (document.querySelector('#geotools'))         {document.querySelector('#geotools').style.display = 'none';}
-      if (document.querySelector('#header'))           {document.querySelector('#header').style.display = 'none';}
-      if (document.querySelector('#snapcontrol'))      {document.querySelector('#snapcontrol').style.display = 'none';}
-      if (document.querySelectorAll('.img_snap')[0])   {document.querySelectorAll('.img_snap')[0].style.display = 'none';}
-      if (document.querySelector('#display_msg_text')) {document.querySelector('#display_msg_text').style.display = 'none';}
-    });
-    page.evaluate(function() {
-      var hide = document.querySelectorAll('.gmnoprint');
-      for (var index = 0; index < hide.length; ++index) {
-        hide[index].style.display = 'none';
-      }
-    });
+    window.setTimeout(function() {
+      page.evaluate(function() {
+        if (document.querySelector('#chat'))                      {document.querySelector('#chat').style.display = 'none';}
+        if (document.querySelector('#chatcontrols'))              {document.querySelector('#chatcontrols').style.display = 'none';}
+        if (document.querySelector('#chatinput'))                 {document.querySelector('#chatinput').style.display = 'none';}
+        if (document.querySelector('#updatestatus'))              {document.querySelector('#updatestatus').style.display = 'none';}
+        if (document.querySelector('#sidebartoggle'))             {document.querySelector('#sidebartoggle').style.display = 'none';}
+        if (document.querySelector('#scrollwrapper'))             {document.querySelector('#scrollwrapper').style.display = 'none';}
+        if (document.querySelector('.leaflet-control-container')) {document.querySelector('.leaflet-control-container').style.display = 'none';}
+      });
 }
 
 /**
@@ -167,17 +217,49 @@ function hideDebris() {
 function prepare(widthz, heightz, search) {
     system.stdout.writeLine('prepare...');
     if (search == "nix") {
-        var selector = "#map_canvas";
-        setElementBounds(selector);
+        window.setTimeout(function() {
+          page.evaluate(function(w, h) {
+            var water = document.createElement('p');
+            water.id='viewport-ice';
+            water.style.position = 'absolute';
+            water.style.top = '0';
+            water.style.marginTop = '0';
+            water.style.paddingTop = '0';
+            water.style.left = '0';
+            water.style.width = w;
+            water.style.height = h;
+            document.querySelectorAll('body')[0].appendChild(water);
+          }, widthz, heightz);
+          var selector = "#viewport-ice";
+          setElementBounds(selector);
+        }, 4000);
     }else{
         page.evaluate(function(search) {
-            if (document.querySelector('#geocode')){
-                document.getElementById("address").value=search;
-                document.querySelector("input[value=Search]").click();
+            if (document.querySelector('#search')){
+                document.getElementById("search").value=search;
+                var e = jQuery.Event("keypress");
+                e.which = 13;
+                e.keyCode = 13;
+                $("#search").trigger(e);
+                document.querySelector(".searchquery")[1][0].click();
             }
         }, search);
-        var selector = "#map_canvas";
-        setElementBounds(selector);
+        window.setTimeout(function() {
+          page.evaluate(function(w, h) {
+            var water = document.createElement('p');
+            water.id='viewport-ice';
+            water.style.position = 'absolute';
+            water.style.top = '0';
+            water.style.marginTop = '0';
+            water.style.paddingTop = '0';
+            water.style.left = '0';
+            water.style.width = w;
+            water.style.height = h;
+            document.querySelectorAll('body')[0].appendChild(water);
+          }, widthz, heightz);
+          var selector = "#viewport-ice";
+          setElementBounds(selector);
+        }, 4000);
     }
 }
 
@@ -195,22 +277,6 @@ function setElementBounds(selector) {
       height: clipRect.height
     };
   }, selector);
-}
-
-/**
- * Checks if human presence not detected and makes a human present
- * @since 2.3.0
- */
-function humanPresence() {
-  var outside = page.evaluate(function() {
-    return !!(document.getElementById('butterbar') && (document.getElementById('butterbar').style.display !== 'none'));
-  });
-  if (outside) {
-    var rekt = page.evaluate(function() {
-      return document.getElementById('butterbar').getBoundingClientRect();
-    });
-    page.sendEvent('click', rekt.left + rekt.width / 2, rekt.top + rekt.height / 2);
-  }
 }
 
 function getDateTime(format) {
@@ -252,16 +318,17 @@ function addTimestamp(time) {
       water.id='watermark-ice';
       water.innerHTML = dateTime;
       water.style.position = 'absolute';
-      water.style.color = 'orange';
+      water.style.color = '#3A539B';
       water.style.top = '0';
+      water.style.zIndex = '4404';
+      water.style.marginTop = '0';
+      water.style.paddingTop = '0';
       water.style.left = '0';
       water.style.fontSize = '40px';
       water.style.opacity = '0.8';
-      water.style.marginTop = '0';
-      water.style.paddingTop = '0';
       water.style.fontFamily = 'monospace';
       water.style.textShadow = '2px 2px 5px #111717';
-      document.querySelector('#map_canvas').appendChild(water);
+      document.querySelectorAll('body')[0].appendChild(water);
     }, time);
 }
 
@@ -278,7 +345,6 @@ function main() {
       }
     });
   }
-  humanPresence();
   window.setTimeout(function() {
     addTimestamp(getDateTime(0));
     file = filepath;
