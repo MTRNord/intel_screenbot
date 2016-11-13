@@ -247,17 +247,15 @@ def iitc(bot, event, *args):
             if bot.memory.exists(["iitc_plugins"]):
                 plugins = []
                 for plugin_objects in bot.memory.get_by_path(["iitc_plugins"]):
-                    url_helper = []
-                    x = 0
+                    list = []
                     for attribute, value in plugin_objects.items():
                         for plugin_name in plugin_names:
                             if attribute  == "url":
-                                url_helper.append(value)
+                                list.append(value)
                             if attribute  == "name":
                                 if value == plugin_name:
-                                    plugin = url_helper[x]
+                                    plugin = list[0]
                                     plugins.append(value)
-                            x += 1
         else:
              plugin = ''
         try:
