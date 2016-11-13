@@ -67,6 +67,7 @@ function addCookies(sacsid, csrf) {
  * @since 3.1.0
  */
 function afterCookieLogin(IntelURL, search) {
+  page.viewportSize = { width: '1920', height: '1080' };
   page.open(IntelURL, function(status) {
     if (status !== 'success') {quit('unable to connect to remote server')}
     page.injectJs('https://code.jquery.com/jquery-3.1.1.min.js');
