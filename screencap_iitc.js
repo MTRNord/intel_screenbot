@@ -93,7 +93,7 @@ function afterCookieLogin(IntelURL, search) {
         });
         var script = document.createElement('script');
         script.type='text/javascript';
-        script.src='https://secure.jonatkins.com/iitc/release/total-conversion-build.user.js';
+        script.src='hangoutsbot/plugins/total-conversion-build.user.js';
         document.head.insertBefore(script, document.head.lastChild);
       });
     setTimeout(function() {
