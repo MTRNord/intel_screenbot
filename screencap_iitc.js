@@ -77,8 +77,7 @@ function afterCookieLogin(IntelURL, search) {
       }
     }
     setTimeout(function() {
-        var iitcJS = fs.read('hangupsbot/plugins/intel_screenbot/total-conversion-build.user.js');
-        page.evaluate(function(itcJS) {
+        page.evaluate(function() {
             localStorage['ingress.intelmap.layergroupdisplayed'] = JSON.stringify({
               "Unclaimed Portals":Boolean(1 === 1),
               "Level 1 Portals":Boolean(1 === 1),
@@ -93,8 +92,12 @@ function afterCookieLogin(IntelURL, search) {
               "Artifacts":true,
               "Ornaments":true
             });
-            $('head').append('<script type="text/javascript">'+ iitcJS + '</script>');
-        }, iitcJS);
+            var script = document.createElement('script');
+            script.type='text/javascript';
+            script.src='https://secure.jonatkins.com/iitc/release/total-conversion-build.user.js';
+            document.head.insertBefore(script, document.head.lastChild);
+        });
+        loadIitcPlugin('http://iitc.jonatkins.com/release/plugins/canvas-render.user.js');
         waitFor({
             timeout: 120000,
             check: function () {
@@ -119,6 +122,15 @@ function afterCookieLogin(IntelURL, search) {
         });
     }, "5000");
   });
+}
+
+function loadIitcPlugin(src) {
+  page.evaluate(function(src) {
+    var script = document.createElement('script');
+    script.type='text/javascript';
+    script.src=src;
+    document.head.insertBefore(script, document.head.lastChild);
+  }, src);
 }
 
 /**
