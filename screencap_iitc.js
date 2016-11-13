@@ -110,28 +110,30 @@ function afterCookieLogin(IntelURL, search) {
                 }
             }, search);
         }
-        waitFor({
-            timeout: 120000,
-            check: function () {
-                return page.evaluate(function() {
-                    if (document.querySelector('.map').textContent.indexOf('done') != -1) {
-                        return true;
-                    }else{
-                        return false;
-                    }
-                });
-            },
-            success: function () {
-                hideDebris();
-                prepare('1920', '1080');
-                main();
-            },
-            error: function () {
-                hideDebris();
-                prepare('1920', '1080');
-                main();
-            } // optional
-        });
+        setTimeout(function() {
+            waitFor({
+                timeout: 120000,
+                check: function () {
+                    return page.evaluate(function() {
+                        if (document.querySelector('.map').textContent.indexOf('done') != -1) {
+                            return true;
+                        }else{
+                            return false;
+                        }
+                    });
+                },
+                success: function () {
+                    hideDebris();
+                    prepare('1920', '1080');
+                    main();
+                },
+                error: function () {
+                    hideDebris();
+                    prepare('1920', '1080');
+                    main();
+                } // optional
+            });
+        }, "3000");
     }, "5000");
   });
 }
