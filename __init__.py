@@ -6,6 +6,8 @@ import subprocess
 import plugins
 import re
 from asyncio import subprocess
+from shutil import move
+from os import remove, close
 
 logger = logging.getLogger(__name__)
 
@@ -23,12 +25,11 @@ def _open_file(name):
 @asyncio.coroutine
 def _replace(file_path, pattern, subst):
     #Create temp file
-    fh, abs_path = mkstemp()
+    abs_path = tempfile.NamedTemporaryFile(suffix=".js", delete=False).name
     with open(abs_path,'w') as new_file:
         with open(file_path) as old_file:
             for line in old_file:
                 new_file.write(line.replace(pattern, subst))
-    close(fh)
     #Remove original file
     remove(file_path)
     #Move new file
@@ -36,9 +37,6 @@ def _replace(file_path, pattern, subst):
 
 def _parse_onlineRepos(url, ext=''):
     logger.debug("parsing github or gitlab or http(s)")
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36'
-    }
     page = requests.get(url, headers=headers).text
     if 'gitlab.com' in url:
         files = []
