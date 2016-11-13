@@ -170,7 +170,7 @@ function hideDebris() {
 function prepare(widthz, heightz, search) {
     if (search == "nix") {
         window.setTimeout(function() {
-          page.evaluate(function(w, h) 
+          page.evaluate(function(w, h) {
             $("span:contains(' Google Roads')").prev().click();
             var water = document.createElement('p');
             water.id='viewport-ice';
