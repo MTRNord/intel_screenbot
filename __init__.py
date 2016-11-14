@@ -56,16 +56,20 @@ def _get_iitc_plugins(bot):
     ext = '.user.js'
     data=[]
     for url in url_config:
-        if "gitlab.com" in url:
-            url = url + '?private_token=' + token
-        for file in _parse_onlineRepos(url, ext):
-            if "gitlab.com" in url:
-                item = {"name": file.split('=', file.count('='))[-1].replace(ext, ''), "url": file}
-            elif 'github.com' in url:
-                item = {"name": file.split('/', file.count('/'))[-1].replace(ext, ''), "url": file}
-            else:
-                item = {"name": file.split('/', file.count('/'))[-1].replace(ext, ''), "url": file}
+        if ext in url:
+            item = {"name": url.split('/', url.count('/'))[-1].replace(ext, ''), "url": url}
             data.append(item)
+        else:
+            if "gitlab.com" in url:
+                url = url + '?private_token=' + token
+            for file in _parse_onlineRepos(url, ext):
+                if "gitlab.com" in url:
+                    item = {"name": file.split('=', file.count('='))[-1].replace(ext, ''), "url": file}
+                elif 'github.com' in url:
+                    item = {"name": file.split('/', file.count('/'))[-1].replace(ext, ''), "url": file}
+                else:
+                    item = {"name": file.split('/', file.count('/'))[-1].replace(ext, ''), "url": file}
+                data.append(item)
 
     iitc_plugins = data
     if bot.memory.exists(["iitc_plugins"]):
