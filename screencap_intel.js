@@ -62,7 +62,7 @@ function afterCookieLogin(IntelURL, search) {
 
     setTimeout(function() {
         waitFor({
-            timeout: 120000,
+            timeout: 240000,
             check: function () {
                 return page.evaluate(function() {
                     if (document.querySelector('#percent_text').textContent.indexOf('90') != -1) {
