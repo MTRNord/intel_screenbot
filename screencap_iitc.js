@@ -65,6 +65,10 @@ function loadIitcPlugin(src) {
   }, src);
 }
 
+function loadLocalIitcPlugin(src) {
+    page.injectJs(src)
+}
+
 addCookies(SACSID, CSRF);
 afterCookieLogin(IntelURL, search);
 
@@ -95,6 +99,14 @@ function afterCookieLogin(IntelURL, search) {
             document.head.insertBefore(script, document.head.lastChild);
         });
         loadIitcPlugin('http://iitc.jonatkins.com/release/plugins/canvas-render.user.js');
+        for(var i in plugins){
+            var plugin = plugins[i];
+            if(plugin.match(^[a-zA-Z]+://)){
+                loadIitcPlugin(plugin);
+            }else{
+               loadLocalIitcPlugin(plugin);
+            }
+        }
         setTimeout(function() {
             if (search != "nix") {
                 page.evaluate(function(search) {
