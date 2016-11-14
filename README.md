@@ -48,6 +48,10 @@ Also you need to add `intel_screenbot` to the plugins.
 
 1. add `https://api.github.com/repos/:REPO_USER/:REPO_NAME/git/trees/master?recursive=1`
 
+## How to add local files to plugins_dir
+
+1. just add the absolute path to `plugins_dir` (relative paths are not tested)
+
 *Note: repos are currently locked to master branch*
 
 ## How to get SACSID and CSRF
@@ -61,13 +65,29 @@ You should look at the Documentation of [ingress-ice](https://github.com/nibogd/
 `/bot clearintel`  
 * Clears the default screenshot URL of a particular hangout.
 
+`/bot show_iitcplugins`  
+* Shows every availible IITC-plugin.
+
+`/bot set_iitcplugins <plugin names devided by whitespace>`  
+* Sets the plugins to use with IITC per hangout.
+
+`/bot clear_iitcplugins`  
+* Clear the plugins to use with IITC per hangout.
+
+
 ## User Command
 
-`/bot intel [<url>]`
+`/bot intel [<url> or <searchTerm>]`
 * Provide an arbitrary `<url>` to take a screenshot
 * If no `<url>` is supplied, use the default screenshot URL (or reply with an error if no URL is set)
 
-## PhantomJS Installation  
+`/bot iitc [<url> or <searchTerm>]`
+* Provide an arbitrary `<url>` to take a screenshot
+* If no `<url>` is supplied, use the default screenshot URL (or reply with an error if no URL is set)
+
+## PhantomJS Installation 
+
+*May be outdated*
 
 ### Debian-based distros (e.g. Ubuntu 14.04)
 
