@@ -261,6 +261,7 @@ def iitc(bot, event, *args):
 
         filename = event.conv_id + "." + str(time.time()) +".png"
         filepath = tempfile.NamedTemporaryFile(prefix=event.conv_id, suffix=".png", delete=False).name
+        plugins_filepath = tempfile.NamedTemporaryFile(prefix=event.conv_id, suffix=".json", delete=False).name
         logger.debug("temporary screenshot file: {}".format(filepath))
         if bot.conversation_memory_get(event.conv_id, 'iitc_plugins'):
             plugins = []
@@ -272,10 +273,13 @@ def iitc(bot, event, *args):
                             plugins.append(plugin_objects["url"])
         else:
              plugins = ''
-
+        
+        with open(plugins_filepath, 'w') as out:
+            out.write(json.dumps(plugins))
+        
         try:
             loop = asyncio.get_event_loop()
-            image_data = yield from _screencap("iitc", url, filepath, filename, SACSID, CSRF, json.dumps(plugins), search, bot, event)
+            image_data = yield from _screencap("iitc", url, filepath, filename, SACSID, CSRF, plugins_filepath, search, bot, event)
         except Exception as e:
             yield from bot.coro_send_message(event.conv_id, "<i>error getting screenshot</i>")
             logger.exception("screencap failed".format(url))
