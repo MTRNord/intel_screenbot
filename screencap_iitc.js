@@ -129,7 +129,7 @@ function afterCookieLogin(IntelURL, search) {
                 }, search);
             }
             waitFor({
-                timeout: 120000,
+                timeout: 240000,
                 check: function () {
                     return page.evaluate(function() {
                         if (document.querySelector('.map').textContent.indexOf('done') != -1) {
