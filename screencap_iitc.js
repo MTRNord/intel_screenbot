@@ -10,7 +10,7 @@ if (args.length === 1) {
       var CSRF  = args[2];
       var IntelURL  = args[3];
       var filepath  = args[4];
-      var plugins  = args[5];
+      var plugins_file  = args[5];
       var search  = 'nix';
   }else{
     if (args.length === 7){
@@ -19,7 +19,7 @@ if (args.length === 1) {
       var IntelURL  = args[3];
       var filepath  = args[4];
       var search  = args[5];
-      var plugins  = args[6];
+      var plugins_file  = args[6];
     }
   }
 }
@@ -99,7 +99,7 @@ function afterCookieLogin(IntelURL, search) {
             document.head.insertBefore(script, document.head.lastChild);
         });
         loadIitcPlugin('http://iitc.jonatkins.com/release/plugins/canvas-render.user.js');
-        var plugins = JSON.parse(fs.open(plugins, 'r'));
+        var plugins = JSON.parse(fs.read(plugins_file));
         for(var i in plugins){
             var plugin = plugins[i];
             if(plugin.match('^[a-zA-Z]+://')){
