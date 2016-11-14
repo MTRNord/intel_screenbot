@@ -106,7 +106,7 @@ function afterCookieLogin(IntelURL, search) {
                         e.keyCode = 13;
                         $("#search").trigger(e);
                       }, 2000);
-                      window.setTimeout(function() {$('.searchquery > :nth-child(2)').children()[0].click();}, 2000);
+                      if ($('.searchquery').length > 0) {window.setTimeout(function() {$('.searchquery > :nth-child(2)').children()[0].click();}, 1000);}                      
                     }
                 }, search);
             }
