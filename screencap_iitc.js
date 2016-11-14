@@ -1,5 +1,5 @@
-var system = require('system')
-var args = require('system').args;
+var system = require('system');
+var args = system.args;
 var page = require('webpage').create();
 var fs = require('fs');
 if (args.length === 1) {
@@ -24,26 +24,6 @@ if (args.length === 1) {
   }
 }
 
-addCookies(SACSID,CSRF)
-afterCookieLogin(IntelURL, search)
-
-function waitFor ($config) {
-    $config._start = $config._start || new Date();
-
-    if ($config.timeout && new Date - $config._start > $config.timeout) {
-        if ($config.error) $config.error();
-        if ($config.debug) console.log('timedout ' + (new Date - $config._start) + 'ms');
-        return;
-    }
-
-    if ($config.check()) {
-        if ($config.debug) console.log('success ' + (new Date - $config._start) + 'ms');
-        return $config.success();
-    }
-
-    setTimeout(waitFor, $config.interval || 0, $config);
-}
-
 function addCookies(sacsid, csrf) {
   phantom.addCookie({
     name: 'SACSID',
@@ -62,20 +42,37 @@ function addCookies(sacsid, csrf) {
 }
 
 
-/**
- * Does all stuff needed after cookie authentication
- * @since 3.1.0
- */
+function waitFor ($config) {
+    $config._start = $config._start || new Date();
+    if ($config.timeout && new Date - $config._start > $config.timeout) {
+        if ($config.error) $config.error();
+        if ($config.debug) console.log('timedout ' + (new Date - $config._start) + 'ms');
+        return;
+    }
+    if ($config.check()) {
+        if ($config.debug) console.log('success ' + (new Date - $config._start) + 'ms');
+        return $config.success();
+    }
+    setTimeout(waitFor, $config.interval || 0, $config);
+}
+
+function loadIitcPlugin(src) {
+  page.evaluate(function(src) {
+    var script = document.createElement('script');
+    script.type='text/javascript';
+    script.src=src;
+    document.head.insertBefore(script, document.head.lastChild);
+  }, src);
+}
+
+addCookies(SACSID, CSRF);
+afterCookieLogin(IntelURL, search);
+
 function afterCookieLogin(IntelURL, search) {
   page.viewportSize = { width: '1920', height: '1080' };
   page.open(IntelURL, function(status) {
     if (status !== 'success') {quit('unable to connect to remote server')}
     page.injectJs('https://code.jquery.com/jquery-3.1.1.min.js');
-    if(!isSignedIn()) {
-      if(fs.exists('.iced_cookies')) {
-        fs.remove('.iced_cookies');
-      }
-    }
     setTimeout(function() {
         page.evaluate(function() {
             localStorage['ingress.intelmap.layergroupdisplayed'] = JSON.stringify({
@@ -102,12 +99,14 @@ function afterCookieLogin(IntelURL, search) {
             if (search != "nix") {
                 page.evaluate(function(search) {
                     if (document.querySelector('#search')){
+                      window.setTimeout(function() {
                         document.getElementById("search").value=search;
                         var e = jQuery.Event("keypress");
                         e.which = 13;
                         e.keyCode = 13;
                         $("#search").trigger(e);
-                        window.setTimeout(function() {$('.searchquery > :nth-child(2)').children()[0].click();}, 2000);
+                      }, 2000);
+                      window.setTimeout(function() {$('.searchquery > :nth-child(2)').children()[0].click();}, 2000);
                     }
                 }, search);
             }
@@ -131,39 +130,11 @@ function afterCookieLogin(IntelURL, search) {
                     hideDebris();
                     prepare('1920', '1080');
                     main();
-                } // optional
+                }
             });
         }, "5000");
     }, "5000");
   });
-}
-
-function loadIitcPlugin(src) {
-  page.evaluate(function(src) {
-    var script = document.createElement('script');
-    script.type='text/javascript';
-    script.src=src;
-    document.head.insertBefore(script, document.head.lastChild);
-  }, src);
-}
-
-/**
- * Checks if user is signed in by looking for the "Sign in" button
- * @returns {boolean}
- * @since 3.2.0
- */
-function isSignedIn() {
-  return page.evaluate(function() {
-    return document.getElementsByTagName('a')[0].innerText.trim() !== 'Sign in';
-  });
-}
-
-function storeCookies() {
-  var cookies = page.cookies;
-  fs.write('.iced_cookies', '', 'w');
-  for(var i in cookies) {
-    fs.write('.iced_cookies', cookies[i].name + '=' + cookies[i].value +'\n', 'a');
-  }
 }
 
 function s(file) {
@@ -172,26 +143,19 @@ function s(file) {
 }
 
 function hideDebris() {
-    window.setTimeout(function() {
-      page.evaluate(function() {
-        if (document.querySelector('#chat'))                      {document.querySelector('#chat').style.display = 'none';}
-        if (document.querySelector('#chatcontrols'))              {document.querySelector('#chatcontrols').style.display = 'none';}
-        if (document.querySelector('#chatinput'))                 {document.querySelector('#chatinput').style.display = 'none';}
-        if (document.querySelector('#updatestatus'))              {document.querySelector('#updatestatus').style.display = 'none';}
-        if (document.querySelector('#sidebartoggle'))             {document.querySelector('#sidebartoggle').style.display = 'none';}
-        if (document.querySelector('#scrollwrapper'))             {document.querySelector('#scrollwrapper').style.display = 'none';}
-        if (document.querySelector('.leaflet-control-container')) {document.querySelector('.leaflet-control-container').style.display = 'none';}
-      });
-    }, 2000);
+  window.setTimeout(function() {
+    page.evaluate(function() {
+      if (document.querySelector('#chat'))                      {document.querySelector('#chat').style.display = 'none';}
+      if (document.querySelector('#chatcontrols'))              {document.querySelector('#chatcontrols').style.display = 'none';}
+      if (document.querySelector('#chatinput'))                 {document.querySelector('#chatinput').style.display = 'none';}
+      if (document.querySelector('#updatestatus'))              {document.querySelector('#updatestatus').style.display = 'none';}
+      if (document.querySelector('#sidebartoggle'))             {document.querySelector('#sidebartoggle').style.display = 'none';}
+      if (document.querySelector('#scrollwrapper'))             {document.querySelector('#scrollwrapper').style.display = 'none';}
+      if (document.querySelector('.leaflet-control-container')) {document.querySelector('.leaflet-control-container').style.display = 'none';}
+    });
+  }, 2000);
 }
 
-/**
- * Prepare map for screenshooting. Make screenshots same width and height with map_canvas
- * If IITC, also set width and height
- * @param {boolean} iitcz
- * @param {number} widthz
- * @param {number} heightz
- */
 function prepare(widthz, heightz) {
         window.setTimeout(function() {
           page.evaluate(function(w, h) {
@@ -212,10 +176,7 @@ function prepare(widthz, heightz) {
         }, 4000);
 }
 
-/**
- * Sets element bounds
- * @param selector
- */
+
 function setElementBounds(selector) {
   page.clipRect = page.evaluate(function(selector) {
     var clipRect = document.querySelector(selector).getBoundingClientRect();
@@ -262,41 +223,38 @@ function getDateTime(format) {
 }
 
 function addTimestamp(time) {
-    page.evaluate(function(dateTime) {
-      var water = document.createElement('p');
-      water.id='watermark-ice';
-      water.innerHTML = dateTime;
-      water.style.position = 'absolute';
-      water.style.color = '#3A539B';
-      water.style.top = '0';
-      water.style.zIndex = '4404';
-      water.style.marginTop = '0';
-      water.style.paddingTop = '0';
-      water.style.left = '0';
-      water.style.fontSize = '40px';
-      water.style.opacity = '0.8';
-      water.style.fontFamily = 'monospace';
-      water.style.textShadow = '2px 2px 5px #111717';
-      document.querySelectorAll('body')[0].appendChild(water);
-    }, time);
+  page.evaluate(function(dateTime) {
+    var water = document.createElement('p');
+    water.id='watermark-ice';
+    water.innerHTML = dateTime;
+    water.style.position = 'absolute';
+    water.style.color = '#3A539B';
+    water.style.top = '0';
+    water.style.zIndex = '4404';
+    water.style.marginTop = '0';
+    water.style.paddingTop = '0';
+    water.style.left = '0';
+    water.style.fontSize = '40px';
+    water.style.opacity = '0.8';
+    water.style.fontFamily = 'monospace';
+    water.style.textShadow = 'rgb(3, 3, 3) 7px 5px 9px';
+    document.querySelectorAll('body')[0].appendChild(water);
+  }, time);
 }
 
 /**
  * Main function.
  */
 function main() {
-  system.stdout.writeLine('main...');
-  if (true){
-    page.evaluate(function() {
-      if (document.getElementById('watermark-ice')) {
-        var oldStamp = document.getElementById('watermark-ice');
-        oldStamp.parentNode.removeChild(oldStamp);
-      }
-    });
-  }
+  page.evaluate(function() {
+    if (document.getElementById('watermark-ice')) {
+      var oldStamp = document.getElementById('watermark-ice');
+      oldStamp.parentNode.removeChild(oldStamp);
+    }
+  });
   window.setTimeout(function() {
     addTimestamp(getDateTime(0));
     file = filepath;
     s(file);
-  }, 5000);
+  }, 3000);
 }

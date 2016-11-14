@@ -16,8 +16,8 @@ def _initialise(bot):
     plugins.register_user_command(["intel", "iitc"])
     plugins.register_admin_command(["setintel", "clearintel", "show_iitcplugins", "set_iitcplugins", "clear_iitcplugins"])
     _get_iitc_plugins(bot)
-        
-    
+
+
 @asyncio.coroutine
 def _open_file(name):
     logger.debug("opening screenshot file: {}".format(name))
@@ -47,7 +47,7 @@ def _parse_onlineRepos(url, ext=''):
     else:
         soup = BeautifulSoup(page, 'html.parser')
         return [url + '/' + node.get('href') for node in soup.find_all('a') if node.get('href').endswith(ext)]
-    
+
 def _get_iitc_plugins(bot):
     logger.debug("getting availible plugins")
     if bot.config.exists(["intel_screenbot", "gitlab_token"]):
@@ -120,7 +120,7 @@ def _screencap(maptype, url, filepath, filename, SACSID, CSRF, plugins, search, 
 
 
 def setintel(bot, event, *args):
-    """set url for current converation for the screenshot command. 
+    """set url for current converation for the intel or iitc command.
     use /bot clearintel to clear the previous url before setting a new one.
     """
     url = bot.conversation_memory_get(event.conv_id, 'IntelURL')
@@ -136,7 +136,7 @@ def setintel(bot, event, *args):
 
 
 def clearintel(bot, event, *args):
-    """clear url for current converation for the screenshot command. 
+    """clear url for current converation for the intel or iitc command.
     """
     url = bot.conversation_memory_get(event.conv_id, 'IntelURL')
     if url is None:
@@ -150,21 +150,19 @@ def clearintel(bot, event, *args):
 
 
 def intel(bot, event, *args):
-    """get a screenshot of a user provided URL or the default URL of the hangout. 
+    """get a screenshot of a search term or intel URL or the default intel URL of the hangout.
     """
-                                    
+
     if args:
         if len(args) > 1:
             url = ' '.join(str(i) for i in args)
-            if '"' in url:
-                url = url.replace('"', '')
         else:
             url = args[0]
-            if '"' in url:
-                url = url.replace('"', '')
+        if '"' in url:
+            url = url.replace('"', '')
     else:
         url = bot.conversation_memory_get(event.conv_id, 'IntelURL')
-                                    
+
     if bot.config.exists(["intel_screenbot", "SACSID"]):
         SACSID = bot.config.get_by_path(["intel_screenbot", "SACSID"])
     else:
@@ -175,12 +173,12 @@ def intel(bot, event, *args):
     else:
         html = "<i><b>{}</b> No Intel CSRF Cookie has been added to config. Unable to authenticate".format(event.user.full_name)
         yield from bot.coro_send_message(event.conv, html)
-        
+
     if url is None:
-        html = "<i><b>{}</b> No Intel URL has been set for screenshots.".format(event.user.full_name)
+        html = "<i><b>{}</b> No Intel URL or search term has been set for screenshots.".format(event.user.full_name)
         yield from bot.coro_send_message(event.conv, html)
-                                    
-    else:        
+
+    else:
         if re.match(r'^[a-zA-Z]+://', url):
             search = False
             ZoomSearch = re.finditer(r"(?:&z=).*", url)
@@ -197,10 +195,10 @@ def intel(bot, event, *args):
             logger.info(search);
             url = 'https://www.ingress.com/intel'
             yield from bot.coro_send_message(event.conv_id, "<i>intel map is searching " + search + " and screenshooting as requested, please wait...</i>")
+
         filename = event.conv_id + "." + str(time.time()) +".png"
         filepath = tempfile.NamedTemporaryFile(prefix=event.conv_id, suffix=".png", delete=False).name
         logger.debug("temporary screenshot file: {}".format(filepath))
-
         try:
             loop = asyncio.get_event_loop()
             image_data = yield from _screencap("intel", url, filepath, filename, SACSID, CSRF, "", search, bot, event)
@@ -208,24 +206,22 @@ def intel(bot, event, *args):
             yield from bot.coro_send_message(event.conv_id, "<i>error getting screenshot</i>")
             logger.exception("screencap failed".format(url))
             return
-                
-        
+
+
 def iitc(bot, event, *args):
-    """get a screenshot of a user provided URL or the default URL of the hangout. 
+    """get a screenshot of a search term or intel URL or the default intel URL of the hangout.
     """
-                                    
+
     if args:
         if len(args) > 1:
             url = ' '.join(str(i) for i in args)
-            if '"' in url:
-                url = url.replace('"', '')
         else:
             url = args[0]
-            if '"' in url:
-                url = url.replace('"', '')
+        if '"' in url:
+            url = url.replace('"', '')
     else:
         url = bot.conversation_memory_get(event.conv_id, 'IntelURL')
-                                    
+
     if bot.config.exists(["intel_screenbot", "SACSID"]):
         SACSID = bot.config.get_by_path(["intel_screenbot", "SACSID"])
     else:
@@ -236,12 +232,12 @@ def iitc(bot, event, *args):
     else:
         html = "<i><b>{}</b> No Intel CSRF Cookie has been added to config. Unable to authenticate".format(event.user.full_name)
         yield from bot.coro_send_message(event.conv, html)
-        
+
     if url is None:
         html = "<i><b>{}</b> No Intel URL has been set for screenshots.".format(event.user.full_name)
         yield from bot.coro_send_message(event.conv, html)
-                                    
-    else:        
+
+    else:
         if re.match(r'^[a-zA-Z]+://', url):
             search = False
             ZoomSearch = re.finditer(r"(?:&z=).*", url)
@@ -258,10 +254,10 @@ def iitc(bot, event, *args):
             logger.info(search);
             url = 'https://www.ingress.com/intel'
             yield from bot.coro_send_message(event.conv_id, "<i>intel map is searching " + search + " and screenshooting as requested, please wait...</i>")
+
         filename = event.conv_id + "." + str(time.time()) +".png"
         filepath = tempfile.NamedTemporaryFile(prefix=event.conv_id, suffix=".png", delete=False).name
         logger.debug("temporary screenshot file: {}".format(filepath))
-        
         if bot.conversation_memory_get(event.conv_id, 'iitc_plugins'):
             plugins = []
             plugin_names = bot.conversation_memory_get(event.conv_id, 'iitc_plugins').split(", ")
@@ -272,7 +268,7 @@ def iitc(bot, event, *args):
                             plugins.append(plugin_objects["url"])
         else:
              plugins = ''
-        
+
         try:
             loop = asyncio.get_event_loop()
             image_data = yield from _screencap("iitc", url, filepath, filename, SACSID, CSRF, json.dumps(plugins), search, bot, event)
@@ -299,7 +295,7 @@ def set_iitcplugins(bot, event, *args):
         bot.conversation_memory_set(event.conv_id, 'iitc_plugins', ', '.join(args))
         html = "<i><b>{}</b> updated plugins".format(event.user.full_name)
         yield from bot.coro_send_message(event.conv, html)
-        
+
 def clear_iitcplugins(bot, event, *args):
     if bot.conversation_memory_get(event.conv_id, 'iitc_plugins') is None:
         html = "<i><b>{}</b> nothing to clear for this conversation".format(event.user.full_name)
