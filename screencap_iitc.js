@@ -99,6 +99,7 @@ function afterCookieLogin(IntelURL, search) {
             document.head.insertBefore(script, document.head.lastChild);
         });
         loadIitcPlugin('http://iitc.jonatkins.com/release/plugins/canvas-render.user.js');
+        var plugins = JSON.parse(fs.open(plugins, 'r'));
         for(var i in plugins){
             var plugin = plugins[i];
             if(plugin.match('^[a-zA-Z]+://')){
