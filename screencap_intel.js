@@ -167,8 +167,8 @@ function login(l, p) {
                         //         });
                         //       }
                         window.setTimeout(afterPlainLogin(IntelURL, search), loginTimeout);
-                    }
-                }, loginTimeout)
+                    }, loginTimeout)
+                }
             }, loginTimeout / 10);
         },
         error: function () {
