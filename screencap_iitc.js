@@ -424,9 +424,22 @@ function hideDebris() {
 }
 
 function prepare(widthz, heightz) {
-        window.setTimeout(function() {
-          page.evaluate(function(w, h) {
-          waitFor({
+    window.setTimeout(function() {
+        page.evaluate(function(w, h) {
+            function waitFor ($config) {
+                $config._start = $config._start || new Date();
+                if ($config.timeout && new Date - $config._start > $config.timeout) {
+                    if ($config.error) $config.error();
+                    if ($config.debug) console.log('timedout ' + (new Date - $config._start) + 'ms');
+                    return;
+                }
+                if ($config.check()) {
+                    if ($config.debug) console.log('success ' + (new Date - $config._start) + 'ms');
+                    return $config.success();
+                }
+                setTimeout(waitFor, $config.interval || 0, $config);
+            }
+            waitFor({
                 timeout: 240000,
                 check: function () {
                     return page.evaluate(function() {
@@ -451,10 +464,10 @@ function prepare(widthz, heightz) {
             water.style.width = w + 'px';
             water.style.height = h + 'px';
             document.querySelectorAll('body')[0].appendChild(water);
-          }, widthz, heightz);
-          var selector = "#viewport-ice";
-          setElementBounds(selector);
-        }, 4000);
+        }, widthz, heightz);
+        var selector = "#viewport-ice";
+        setElementBounds(selector);
+    }, 4000);
 }
 
 
