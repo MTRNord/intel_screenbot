@@ -187,7 +187,7 @@ function afterPlainLogin(IntelURL, search) {
             }
         }
         var checkExist1 = setInterval(function() {
-            if ($('.map').length > 0) {
+            if (document.querySelector('.map')){
                 setTimeout(function() {
                     if (search != "nix") {
                         page.evaluate(function(search) {
