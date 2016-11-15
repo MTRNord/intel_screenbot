@@ -235,6 +235,10 @@ function afterPlainLogin(IntelURL, search) {
                         }
                       }, 100);
                     }
+                    $("span:contains('Google Roads')").prev().click();
+                    if(!$("span:contains('Google Roads')").prev().is(':checked')){
+                        $("span:contains('Google Roads')").click();
+                    }
                 }, search);
             }
             waitFor({
@@ -379,6 +383,9 @@ function afterCookieLogin(IntelURL, search) {
                       }, 100);
                     }
                     $("span:contains('Google Roads')").prev().click();
+                    if(!$("span:contains('Google Roads')").prev().is(':checked')){
+                        $("span:contains('Google Roads')").click();
+                    }
                 }, search);
             }
             waitFor({
