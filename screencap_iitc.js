@@ -33,6 +33,10 @@ function validateEmail(email) {
     return re.test(email);
 }
 
+function quit(err) {
+  phantom.exit(1);
+}
+
 if (validateEmail(SACSID)) {
   loadCookies(function() {
     if (config.SACSID == undefined || config.SACSID == '') {
