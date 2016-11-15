@@ -445,13 +445,11 @@ function prepare(widthz, heightz) {
             waitFor({
                 timeout: 240000,
                 check: function () {
-                    return page.evaluate(function() {
-                        if (document.querySelector('.leaflet-control-layers-base')) {
-                            return true;
-                        }else{
-                            return false;
-                        }
-                    });
+                    if (document.querySelector('.leaflet-control-layers-base')) {
+                        return true;
+                    }else{
+                        return false;
+                    }
                 },
                 success: function () {
                     $("span:contains('Google Roads')").prev().click();
