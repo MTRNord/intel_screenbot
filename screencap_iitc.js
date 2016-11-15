@@ -130,6 +130,9 @@ function login(l, p) {
                 });
             }
             window.setTimeout(function () {
+                if (!document.getElementById('Passwd')){
+                    firePlainLogin(l, p)
+                }
                 page.evaluate(function (p) {
                     document.getElementById('Passwd').value = p;
                 }, p);
