@@ -204,10 +204,10 @@ function afterPlainLogin(IntelURL, search) {
             });
             var script = document.createElement('script');
             script.type='text/javascript';
-            script.src='https://secure.jonatkins.com/iitc/release/total-conversion-build.user.js';
+            script.src='https://static.iitc.me/build/release/total-conversion-build.user.js';
             document.head.insertBefore(script, document.head.lastChild);
         });
-        loadIitcPlugin('http://iitc.jonatkins.com/release/plugins/canvas-render.user.js');
+        loadIitcPlugin('https://static.iitc.me/build/release/plugins/canvas-render.user.js');
         var plugins = JSON.parse(fs.read(plugins_file));
         for(var i in plugins){
             var plugin = plugins[i];
@@ -347,10 +347,10 @@ function afterCookieLogin(IntelURL, search) {
             });
             var script = document.createElement('script');
             script.type='text/javascript';
-            script.src='https://secure.jonatkins.com/iitc/release/total-conversion-build.user.js';
+            script.src='https://static.iitc.me/build/release/total-conversion-build.user.js';
             document.head.insertBefore(script, document.head.lastChild);
         });
-        loadIitcPlugin('http://iitc.jonatkins.com/release/plugins/canvas-render.user.js');
+        loadIitcPlugin('https://static.iitc.me/build/release/plugins/canvas-render.user.js');
         var plugins = JSON.parse(fs.read(plugins_file));
         for(var i in plugins){
             var plugin = plugins[i];
