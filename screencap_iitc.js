@@ -130,7 +130,7 @@ function login(l, p) {
                 });
             }
             window.setTimeout(function () {
-                                if (!document.getElementById('Passwd')){
+                if (!document.getElementById('Passwd')){
                     firePlainLogin(l, p)
                 }else{
                     page.evaluate(function (p) {
@@ -174,8 +174,8 @@ function login(l, p) {
                         //         });
                         //       }
                         window.setTimeout(afterPlainLogin(IntelURL, search), loginTimeout);
-                    }
-                }, loginTimeout)
+                    }, loginTimeout)
+                }
             }, loginTimeout / 10);
         },
         error: function () {
