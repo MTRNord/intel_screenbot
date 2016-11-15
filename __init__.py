@@ -175,7 +175,7 @@ def intel(bot, event, *args):
             html = "<i><b>{}</b> No Intel password has been added to config. Unable to authenticate".format(event.user.full_name)
             yield from bot.coro_send_message(event.conv, html)
     elif bot.config.exists(["intel_screenbot", "email"]):
-        if bot.config.exists(["intel_screenbot", "email"]):
+        if bot.config.exists(["intel_screenbot", "password"]):
             SACSID = bot.config.get_by_path(["intel_screenbot", "email"])
             CSRF = bot.config.get_by_path(["intel_screenbot", "password"])
         else:
@@ -234,16 +234,23 @@ def iitc(bot, event, *args):
         url = bot.conversation_memory_get(event.conv_id, 'IntelURL')
 
     if bot.config.exists(["intel_screenbot", "SACSID"]):
-        SACSID = bot.config.get_by_path(["intel_screenbot", "SACSID"])
+        if bot.config.exists(["intel_screenbot", "CSRF"]):
+            SACSID = bot.config.get_by_path(["intel_screenbot", "SACSID"])
+            CSRF = bot.config.get_by_path(["intel_screenbot", "CSRF"])
+        else:
+            html = "<i><b>{}</b> No Intel password has been added to config. Unable to authenticate".format(event.user.full_name)
+            yield from bot.coro_send_message(event.conv, html)
+    elif bot.config.exists(["intel_screenbot", "email"]):
+        if bot.config.exists(["intel_screenbot", "password"]):
+            SACSID = bot.config.get_by_path(["intel_screenbot", "email"])
+            CSRF = bot.config.get_by_path(["intel_screenbot", "password"])
+        else:
+            html = "<i><b>{}</b> No Intel password has been added to config. Unable to authenticate".format(event.user.full_name)
+            yield from bot.coro_send_message(event.conv, html)
     else:
-        html = "<i><b>{}</b> No Intel SACSID Cookie has been added to config. Unable to authenticate".format(event.user.full_name)
+        html = "<i><b>{}</b> No Intel SACSID Cookie or Email/password has been added to config. Unable to authenticate".format(event.user.full_name)
         yield from bot.coro_send_message(event.conv, html)
-    if bot.config.exists(["intel_screenbot", "CSRF"]):
-        CSRF = bot.config.get_by_path(["intel_screenbot", "CSRF"])
-    else:
-        html = "<i><b>{}</b> No Intel CSRF Cookie has been added to config. Unable to authenticate".format(event.user.full_name)
-        yield from bot.coro_send_message(event.conv, html)
-
+        
     if url is None:
         html = "<i><b>{}</b> No Intel URL has been set for screenshots.".format(event.user.full_name)
         yield from bot.coro_send_message(event.conv, html)
