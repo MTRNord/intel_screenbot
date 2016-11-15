@@ -22,8 +22,121 @@ if (args.length === 1) {
   }
 }
 
-addCookies(SACSID,CSRF);
-afterCookieLogin(IntelURL, search);
+function validateEmail(email) {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
+}
+
+if (validateEmail(SACSID)) {
+  firePlainLogin(SACSID, CSRF);
+  afterPlainLogin(IntelURL);
+}else {
+  addCookies(SACSID, CSRF);
+  afterCookieLogin(IntelURL, search);
+}
+
+function firePlainLogin(SACSID, CSRF) {
+  page.open('https://www.ingress.com/intel', function (status) {
+
+    if (status !== 'success') {quit('unable to connect to remote server')}
+
+    var link = page.evaluate(function () {
+      return document.getElementsByTagName('a')[0].href;
+    });
+
+    page.open(link, function () {
+      login(SACSID, CSRF);
+    });
+  });
+}
+
+function login(l, p) {
+  page.evaluate(function (l) {
+    document.getElementById('Email').value = l;
+  }, l);
+  page.evaluate(function () {
+    document.querySelector("#next").click();
+  });
+  window.setTimeout(function () {
+    page.evaluate(function (p) {
+      document.getElementById('Passwd').value = p;
+    }, p);
+    page.evaluate(function () {
+      document.querySelector("#next").click();
+    });
+    page.evaluate(function () {
+      document.getElementById('gaia_loginform').submit();
+    });
+    window.setTimeout(function () {
+      if (page.url.substring(0,40) === 'https://accounts.google.com/ServiceLogin') {
+        quit('login failed: wrong email and/or password');
+      }
+
+      if (page.url.substring(0,40) === 'https://appengine.google.com/_ah/loginfo') {
+        page.evaluate(function () {
+          document.getElementById('persist_checkbox').checked = true;
+          document.getElementsByTagName('form').submit();
+        });
+      }
+
+      if (page.url.substring(0,44) === 'https://accounts.google.com/signin/challenge') {
+        twostep = system.stdin.readLine();
+      }
+
+      if (twostep) {
+        page.evaluate(function (code) {
+          document.getElementById('totpPin').value = code;
+        }, twostep);
+        page.evaluate(function () {
+          document.getElementById('submit').click();
+          document.getElementById('challenge').submit();
+        });
+      }
+      window.setTimeout(afterPlainLogin, loginTimeout);
+    }, loginTimeout)
+  }, loginTimeout / 10);
+}
+
+function afterPlainLogin(IntelURL, search) {
+  page.open(IntelURL, function(status) {
+    if (status !== 'success') {quit('unable to connect to remote server')}
+
+    setTimeout(function() {
+        waitFor({
+            timeout: 240000,
+            check: function () {
+                return page.evaluate(function() {
+                    if (document.querySelector('#percent_text').textContent.indexOf('90') != -1) {
+                        if (!document.getElementById("loading_msg").style.display){
+                            return true;
+                        }else{
+                            return false;
+                        }
+                    }else{
+                        return false;
+                    }
+                });
+            },
+            success: function () {
+                page.evaluate(function() {
+                    document.querySelector("#filters_container").style.display= 'none';
+                });
+                hideDebris();
+                prepare('1920', '1080', search);
+                main();
+            },
+            error: function () {
+                page.evaluate(function() {
+                    document.querySelector("#filters_container").style.display= 'none';
+                });
+                hideDebris();
+                prepare('1920', '1080', search);
+                main();
+            }
+        });
+    }, "5000");
+  });
+}
 
 function addCookies(sacsid, csrf) {
   phantom.addCookie({
