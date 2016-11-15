@@ -3,6 +3,7 @@ var args = system.args;
 var page = require('webpage').create();
 var fs = require('fs');
 var cookiespath = '.iced_cookies';
+var config = '';
 if (args.length === 1) {
     console.log('Try to pass some args when invoking this script!');
 } else {
@@ -77,6 +78,7 @@ function loadCookies(callback) {
     }
     stream.close();
   }
+  callback();
 }
 
 function isSignedIn() {
