@@ -128,15 +128,15 @@ function login(l, p) {
         twostep = system.stdin.readLine();
       }
 
-      if (twostep) {
-        page.evaluate(function (code) {
-          document.getElementById('totpPin').value = code;
-        }, twostep);
-        page.evaluate(function () {
-          document.getElementById('submit').click();
-          document.getElementById('challenge').submit();
-        });
-      }
+//       if (twostep) {
+//         page.evaluate(function (code) {
+//           document.getElementById('totpPin').value = code;
+//         }, twostep);
+//         page.evaluate(function () {
+//           document.getElementById('submit').click();
+//           document.getElementById('challenge').submit();
+//         });
+//       }
       window.setTimeout(afterPlainLogin(IntelURL, search), loginTimeout);
     }, loginTimeout)
   }, loginTimeout / 10);
