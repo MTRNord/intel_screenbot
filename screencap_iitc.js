@@ -102,48 +102,65 @@ function firePlainLogin(SACSID, CSRF) {
 
 function login(l, p) {
   console.log("Login")
-  page.evaluate(function (l) {
-    document.getElementById('Email').value = l;
-  }, l);
-  page.evaluate(function () {
-    document.querySelector("#next").click();
-  });
-  window.setTimeout(function () {
-    page.evaluate(function (p) {
-      document.getElementById('Passwd').value = p;
-    }, p);
-    page.evaluate(function () {
-      document.querySelector("#next").click();
+    waitFor({
+        timeout: 240000,
+        check: function () {
+            return page.evaluate(function() {
+                if (document.querySelector('.gaia_loginform').textContent.indexOf('done') != -1) {
+                    return true;
+                }else{
+                    return false;
+                }
+            });
+        },
+        success: function () {
+            page.evaluate(function (l) {
+                document.getElementById('Email').value = l;
+            }, l);
+            page.evaluate(function () {
+                document.querySelector("#next").click();
+            });
+            window.setTimeout(function () {
+                page.evaluate(function (p) {
+                    document.getElementById('Passwd').value = p;
+                }, p);
+                page.evaluate(function () {
+                    document.querySelector("#next").click();
+                });
+                page.evaluate(function () {
+                    document.getElementById('gaia_loginform').submit();
+                });
+                window.setTimeout(function () {
+                    if (page.url.substring(0,40) === 'https://accounts.google.com/ServiceLogin') {
+                        quit('login failed: wrong email and/or password');
+                    }
+                    if (page.url.substring(0,40) === 'https://appengine.google.com/_ah/loginfo') {
+                        page.evaluate(function () {
+                            document.getElementById('persist_checkbox').checked = true;
+                            document.getElementsByTagName('form').submit();
+                        });
+                    }
+                    if (page.url.substring(0,44) === 'https://accounts.google.com/signin/challenge') {
+                        //twostep = system.stdin.readLine();
+                        console.log("twostep Bug")
+                    }
+                    //       if (twostep) {
+                    //         page.evaluate(function (code) {
+                    //           document.getElementById('totpPin').value = code;
+                    //         }, twostep);
+                    //         page.evaluate(function () {
+                    //           document.getElementById('submit').click();
+                    //           document.getElementById('challenge').submit(); 
+                    //         });
+                    //       }
+                    window.setTimeout(afterPlainLogin(IntelURL, search), loginTimeout);
+                }, loginTimeout)
+            }, loginTimeout / 10);
+        },
+        error: function () {
+            quit();
+        }
     });
-    page.evaluate(function () {
-      document.getElementById('gaia_loginform').submit();
-    });
-    window.setTimeout(function () {
-      if (page.url.substring(0,40) === 'https://accounts.google.com/ServiceLogin') {
-        quit('login failed: wrong email and/or password');
-      }
-      if (page.url.substring(0,40) === 'https://appengine.google.com/_ah/loginfo') {
-        page.evaluate(function () {
-          document.getElementById('persist_checkbox').checked = true;
-          document.getElementsByTagName('form').submit();
-        });
-      }
-      if (page.url.substring(0,44) === 'https://accounts.google.com/signin/challenge') {
-        //twostep = system.stdin.readLine();
-        console.log("twostep Bug")
-      }
-//       if (twostep) {
-//         page.evaluate(function (code) {
-//           document.getElementById('totpPin').value = code;
-//         }, twostep);
-//         page.evaluate(function () {
-//           document.getElementById('submit').click();
-//           document.getElementById('challenge').submit();
-//         });
-//       }
-      window.setTimeout(afterPlainLogin(IntelURL, search), loginTimeout);
-    }, loginTimeout)
-  }, loginTimeout / 10);
 }
 
 function afterPlainLogin(IntelURL, search) {
