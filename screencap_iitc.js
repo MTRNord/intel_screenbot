@@ -81,6 +81,7 @@ function storeCookies() {
 }
 
 function firePlainLogin(SACSID, CSRF) {
+  console.log("firePlainLogin")  
   page.open('https://www.ingress.com/intel', function (status) {
     if (status !== 'success') {quit('unable to connect to remote server')}
     var link = page.evaluate(function () {
@@ -93,6 +94,7 @@ function firePlainLogin(SACSID, CSRF) {
 }
 
 function login(l, p) {
+  console.log("Login")
   page.evaluate(function (l) {
     document.getElementById('Email').value = l;
   }, l);
@@ -137,6 +139,7 @@ function login(l, p) {
 }
 
 function afterPlainLogin(IntelURL, search) {
+  console.log("afterPlainLogin")
   page.viewportSize = { width: '1920', height: '1080' };
   page.open(IntelURL, function(status) {
     if (status !== 'success') {quit('unable to connect to remote server')}
