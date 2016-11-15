@@ -102,6 +102,9 @@ function firePlainLogin(SACSID, CSRF) {
 
 function login(l, p) {
   console.log("Login")
+    if (document.querySelector('#timeoutError')){
+        login(l, p)
+    }
     waitFor({
         timeout: 240000,
         check: function () {
