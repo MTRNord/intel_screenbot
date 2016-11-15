@@ -39,6 +39,8 @@ Also you need to add `intel_screenbot` to the plugins.
 
 ## Configuration with Email Password
 
+**IMPORTANT: DO NOT USE YOUR MAIN ACCOUNT! I AM NOT RESPONSIBLE IF YOU ACCOUNT GETS BANNED! USE AT YOUR OWN RISK**
+
 *Note DON'T set cookies up when using emil/password*
 For using the Intel Screenbot you need to add the following to the config.json:
 
