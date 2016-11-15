@@ -106,7 +106,7 @@ function login(l, p) {
         timeout: 240000,
         check: function () {
             return page.evaluate(function() {
-                if (document.querySelector('.gaia_loginform').textContent.indexOf('done') != -1) {
+                if (document.querySelector('#gaia_loginform').textContent.indexOf('done') != -1) {
                     return true;
                 }else{
                     return false;
