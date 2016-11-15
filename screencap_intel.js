@@ -52,7 +52,9 @@ if (validateEmail(SACSID)) {
 
 function firePlainLogin(SACSID, CSRF) {
   page.open('https://www.ingress.com/intel', function (status) {
-
+    page.evaluate(function () {
+      localStorage.clear()
+    });
     if (status !== 'success') {quit('unable to connect to remote server')}
 
     var link = 'https://www.google.com/accounts/ServiceLogin?service=ah&passive=true&continue=https://appengine.google.com/_ah/conflogin%3Fcontinue%3Dhttps://www.ingress.com/intel&ltmpl='
