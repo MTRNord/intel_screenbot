@@ -112,6 +112,7 @@ def _screencap(maptype, url, filepath, filename, SACSID, CSRF, plugins, search, 
             exitcode, stdout = yield from task
 
     # read the resulting file into a byte array
+    yield from asyncio.sleep(3)
     file_resource = yield from _open_file(filepath)
     file_data = yield from loop.run_in_executor(None, file_resource.read)
     image_data = yield from loop.run_in_executor(None, io.BytesIO, file_data)
