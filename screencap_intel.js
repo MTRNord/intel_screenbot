@@ -2,6 +2,7 @@ var system = require('system')
 var args = system.args;
 var page = require('webpage').create();
 var fs = require('fs');
+var cookiespath = '.iced_cookies';
 if (args.length === 1) {
     console.log('Try to pass some args when invoking this script!');
 } else {
