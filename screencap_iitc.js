@@ -426,7 +426,21 @@ function hideDebris() {
 function prepare(widthz, heightz) {
         window.setTimeout(function() {
           page.evaluate(function(w, h) {
-            $("span:contains(' Google Roads')").prev().click();
+          waitFor({
+                timeout: 240000,
+                check: function () {
+                    return page.evaluate(function() {
+                        if (document.querySelector('.leaflet-control-layers-base')) {
+                            return true;
+                        }else{
+                            return false;
+                        }
+                    });
+                },
+                success: function () {
+                    $("span:contains('Google Roads')").prev().click();
+                }
+            });
             var water = document.createElement('p');
             water.id='viewport-ice';
             water.style.position = 'absolute';
