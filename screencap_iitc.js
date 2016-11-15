@@ -229,7 +229,6 @@ function afterPlainLogin(IntelURL, search) {
                 }
             });
         }, "5000");
-    }
     }, "5000");
   });
 }
