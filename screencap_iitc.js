@@ -13,7 +13,7 @@ if (args.length === 1) {
       var filepath  = args[4];
       var plugins_file  = args[5];
       var search  = 'nix';
-      var loginTimeout = '10000';
+      var loginTimeout = '5000';
   }else{
     if (args.length === 7){
       var SACSID  = args[1];
@@ -22,7 +22,7 @@ if (args.length === 1) {
       var filepath  = args[4];
       var search  = args[5];
       var plugins_file  = args[6];
-      var loginTimeout = '10000';
+      var loginTimeout = '5000';
     }
   }
 }

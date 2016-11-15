@@ -12,6 +12,7 @@ if (args.length === 1) {
       var IntelURL  = args[3];
       var filepath  = args[4];
       var search  = 'nix';
+      var loginTimeout = '5000';
   }else{
     if (args.length === 6){
       var SACSID  = args[1];
@@ -19,6 +20,7 @@ if (args.length === 1) {
       var IntelURL  = args[3];
       var filepath  = args[4];
       var search  = args[5];
+      var loginTimeout = '5000';
     }
   }
 }
