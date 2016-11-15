@@ -14,7 +14,7 @@ if (args.length === 1) {
       var filepath  = args[4];
       var plugins_file  = args[5];
       var search  = 'nix';
-      var loginTimeout = '5000';
+      var loginTimeout = '10000';
   }else{
     if (args.length === 7){
       var SACSID  = args[1];
@@ -23,7 +23,7 @@ if (args.length === 1) {
       var filepath  = args[4];
       var search  = args[5];
       var plugins_file  = args[6];
-      var loginTimeout = '5000';
+      var loginTimeout = '10000';
     }
   }
 }
@@ -182,49 +182,54 @@ function afterPlainLogin(IntelURL, search) {
                loadLocalIitcPlugin(plugin);
             }
         }
-        setTimeout(function() {
-            if (search != "nix") {
-                page.evaluate(function(search) {
-                    if (document.querySelector('#search')){
-                      window.setTimeout(function() {
-                        document.getElementById("search").value=search;
-                        var e = jQuery.Event("keypress");
-                        e.which = 13;
-                        e.keyCode = 13;
-                        $("#search").trigger(e);
-                      }, 2000);
-                      var checkExist = setInterval(function() {
-                        if ($('.searchquery').length > 0) {
-                            window.setTimeout(function() {$('.searchquery > :nth-child(2)').children()[0].click();}, 1000);
-                            clearInterval(checkExist);
-                        }
-                      }, 100);
+        var checkExist1 = setInterval(function() {
+            if ($('.map').length > 0) {
+                setTimeout(function() {
+                    if (search != "nix") {
+                        page.evaluate(function(search) {
+                            if (document.querySelector('#search')){
+                              window.setTimeout(function() {
+                                document.getElementById("search").value=search;
+                                var e = jQuery.Event("keypress");
+                                e.which = 13;
+                                e.keyCode = 13;
+                                $("#search").trigger(e);
+                              }, 2000);
+                              var checkExist = setInterval(function() {
+                                if ($('.searchquery').length > 0) {
+                                    window.setTimeout(function() {$('.searchquery > :nth-child(2)').children()[0].click();}, 1000);
+                                    clearInterval(checkExist);
+                                }
+                              }, 100);
+                            }
+                        }, search);
                     }
-                }, search);
-            }
-            waitFor({
-                timeout: 240000,
-                check: function () {
-                    return page.evaluate(function() {
-                        if (document.querySelector('.map').textContent.indexOf('done') != -1) {
-                            return true;
-                        }else{
-                            return false;
+                    waitFor({
+                        timeout: 240000,
+                        check: function () {
+                            return page.evaluate(function() {
+                                if (document.querySelector('.map').textContent.indexOf('done') != -1) {
+                                    return true;
+                                }else{
+                                    return false;
+                                }
+                            });
+                        },
+                        success: function () {
+                            hideDebris();
+                            prepare('1920', '1080');
+                            main();
+                        },
+                        error: function () {
+                            hideDebris();
+                            prepare('1920', '1080');
+                            main();
                         }
                     });
-                },
-                success: function () {
-                    hideDebris();
-                    prepare('1920', '1080');
-                    main();
-                },
-                error: function () {
-                    hideDebris();
-                    prepare('1920', '1080');
-                    main();
-                }
-            });
-        }, "5000");
+                }, "5000");
+            }
+            clearInterval(checkExist1);
+        }, 100);
     }, "5000");
   });
 }
