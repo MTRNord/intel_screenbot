@@ -90,9 +90,7 @@ function firePlainLogin(SACSID, CSRF) {
   console.log("firePlainLogin")  
   page.open('https://www.ingress.com/intel', function (status) {
     if (status !== 'success') {quit('unable to connect to remote server')}
-    var link = page.evaluate(function () {
-      return document.getElementsByTagName('a')[0].href;
-    });
+    var link = 'https://www.google.com/accounts/ServiceLogin?service=ah&passive=true&continue=https://appengine.google.com/_ah/conflogin%3Fcontinue%3Dhttps://www.ingress.com/intel&ltmpl='
     page.open(link, function () {
       login(SACSID, CSRF);
     });
