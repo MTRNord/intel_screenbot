@@ -378,6 +378,7 @@ function afterCookieLogin(IntelURL, search) {
                         }
                       }, 100);
                     }
+                    $("span:contains('Google Roads')").prev().click();
                 }, search);
             }
             waitFor({
@@ -429,32 +430,6 @@ function hideDebris() {
 function prepare(widthz, heightz) {
     window.setTimeout(function() {
         page.evaluate(function(w, h) {
-            function waitFor ($config) {
-                $config._start = $config._start || new Date();
-                if ($config.timeout && new Date - $config._start > $config.timeout) {
-                    if ($config.error) $config.error();
-                    if ($config.debug) console.log('timedout ' + (new Date - $config._start) + 'ms');
-                    return;
-                }
-                if ($config.check()) {
-                    if ($config.debug) console.log('success ' + (new Date - $config._start) + 'ms');
-                    return $config.success();
-                }
-                setTimeout(waitFor, $config.interval || 0, $config);
-            }
-            waitFor({
-                timeout: 240000,
-                check: function () {
-                    if (document.querySelector('.leaflet-control-layers-base')) {
-                        return true;
-                    }else{
-                        return false;
-                    }
-                },
-                success: function () {
-                    $("span:contains('Google Roads')").prev().click();
-                }
-            });
             var water = document.createElement('p');
             water.id='viewport-ice';
             water.style.position = 'absolute';
