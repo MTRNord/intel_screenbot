@@ -6,7 +6,7 @@ Requires: **PhantomJS** (installation instructions below)
 
 Requires: **[hangoutsbot](https://github.com/hangoutsbot/hangoutsbot)**
 
-Get and post a screenshot of the Intel Map. 
+Get and post a screenshot of the Intel Map.
 
 ## Install
 To install the plugin you need to:
@@ -17,13 +17,35 @@ To install the plugin you need to:
 4. Run `pip3 install -r requirements.txt`
 5. Follow Configuration.
 
-## Configuration
+## Configuration with Cookies
+
+*Note Cookies do have to be changed on daily base*
 For using the Intel Screenbot you need to add the following to the config.json:
 
 ```
  "intel_screenbot": {
    "SACSID": "YOUR SACSID",
    "CSRF": "YOUR CSRF",
+   "plugin_dirs": [
+     "http://iitc.jonatkins.com/release/plugins"
+   ]
+ }
+```  
+
+According to the official INSTALL Documention of the hangoutbot you will find the config.json in `/<username>/.local/share/hangupsbot/`
+(NOTE! add an comma behind the last element of the config.json and add it befor the outer element closes)
+
+Also you need to add `intel_screenbot` to the plugins.
+
+## Configuration with Email Password
+
+*Note DON'T set cookies up when using emil/password*
+For using the Intel Screenbot you need to add the following to the config.json:
+
+```
+ "intel_screenbot": {
+   "email": "YOUR EMAIL",
+   "password": "YOUR Password",
    "plugin_dirs": [
      "http://iitc.jonatkins.com/release/plugins"
    ]
@@ -85,7 +107,7 @@ You should look at the Documentation of [ingress-ice](https://github.com/nibogd/
 * Provide an arbitrary `<url>` to take a screenshot
 * If no `<url>` is supplied, use the default screenshot URL (or reply with an error if no URL is set)
 
-## PhantomJS Installation 
+## PhantomJS Installation
 
 *May be outdated*
 
@@ -95,7 +117,7 @@ You should look at the Documentation of [ingress-ice](https://github.com/nibogd/
 
 ## Building PhantomJS from Source (Advanced)
 
-Note: It is not within the scope of this project to discuss and resolve build problems with 
+Note: It is not within the scope of this project to discuss and resolve build problems with
   external libraries.
 
 **Install dependencies**  
