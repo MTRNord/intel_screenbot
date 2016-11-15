@@ -94,7 +94,7 @@ function firePlainLogin(SACSID, CSRF) {
     page.open(link, function () {
       page.evaluate(function () {
         localStorage.clear()
-      }
+      });
       login(SACSID, CSRF);
     });
   });
