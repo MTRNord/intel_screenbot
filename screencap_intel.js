@@ -28,8 +28,15 @@ function validateEmail(email) {
 }
 
 if (validateEmail(SACSID)) {
-  firePlainLogin(SACSID, CSRF);
-  afterPlainLogin(IntelURL);
+  loadCookies(function() {
+    if (config.SACSID == undefined || config.SACSID == '') {
+      firePlainLogin();
+    } else {
+      addCookies(config.SACSID, config.CSRF);
+      announce('Using cookies to log in');
+      afterCookieLogin();
+    }
+  });
 }else {
   addCookies(SACSID, CSRF);
   afterCookieLogin(IntelURL, search);
@@ -48,6 +55,39 @@ function firePlainLogin(SACSID, CSRF) {
       login(SACSID, CSRF);
     });
   });
+}
+
+function loadCookies(callback) {
+  if(fs.exists(cookiespath)) {
+    var stream = fs.open(cookiespath, 'r');
+
+    while(!stream.atEnd()) {
+      var line = stream.readLine().split('=');
+      if(line[0] === 'SACSID') {
+        config.SACSID = line[1];
+      } else if(line[0] === 'csrftoken') {
+        config.CSRF = line[1];
+      } else {
+        config.SACSID = '';
+        config.CSRF = '';
+      }
+    }
+    stream.close();
+  }
+}
+
+function isSignedIn() {
+  return page.evaluate(function() {
+    return document.getElementsByTagName('a')[0].innerText.trim() !== 'Sign in';
+  });
+}
+
+function storeCookies() {
+  var cookies = page.cookies;
+  fs.write(cookiespath, '', 'w');
+  for(var i in cookies) {
+    fs.write(cookiespath, cookies[i].name + '=' + cookies[i].value +'\n', 'a');
+  }
 }
 
 function login(l, p) {
@@ -92,7 +132,7 @@ function login(l, p) {
           document.getElementById('challenge').submit();
         });
       }
-      window.setTimeout(afterPlainLogin, loginTimeout);
+      window.setTimeout(afterPlainLogin(IntelURL, search), loginTimeout);
     }, loginTimeout)
   }, loginTimeout / 10);
 }
@@ -101,7 +141,12 @@ function afterPlainLogin(IntelURL, search) {
   page.open(IntelURL, function(status) {
     if (status !== 'success') {quit('unable to connect to remote server')}
 
+    if (!isSignedIn()) {
+      announce('Something went wrong. Please, sign in to Google via your browser and restart ICE. Don\'t worry, your Ingress account will not be affected.');
+      quit();
+    }
     setTimeout(function() {
+        storeCookies();
         waitFor({
             timeout: 240000,
             check: function () {
@@ -172,7 +217,19 @@ function waitFor ($config) {
 function afterCookieLogin(IntelURL, search) {
   page.open(IntelURL, function(status) {
     if (status !== 'success') {quit('unable to connect to remote server')}
-
+    if(!isSignedIn()) {
+      if(fs.exists(cookiespath)) {
+        fs.remove(cookiespath);
+      }
+      if(validateEmail(SACSID)) {
+        page.deleteCookie('SACSID');
+        page.deleteCookie('csrftoken');
+        firePlainLogin(SACSID, CSRF);
+        return;
+      } else {
+        quit('Cookies are obsolete. Update your config file.');
+      }
+    }
     setTimeout(function() {
         waitFor({
             timeout: 240000,
