@@ -35,7 +35,7 @@ function validateEmail(email) {
 if (validateEmail(SACSID)) {
   loadCookies(function() {
     if (config.SACSID == undefined || config.SACSID == '') {
-      firePlainLogin();
+      firePlainLogin(SACSID, CSRF);
     } else {
       addCookies(config.SACSID, config.CSRF);
       console.log('Using cookies to log in');
