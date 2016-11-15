@@ -103,7 +103,7 @@ def _screencap(maptype, url, filepath, filename, SACSID, CSRF, plugins, search, 
         if search == False:
             command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '" "' + plugins + '"'
             task = _get_lines(command)
-            task = asyncio.wait_for(task, 240.0, loop=self.loop)
+            task = asyncio.wait_for(task, 240.0, loop=loop)
             exitcode, stdout = loop.run_until_complete(task)
         else:
             command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '" "' + search + '" "' + plugins + '"'
