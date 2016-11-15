@@ -41,7 +41,7 @@ def _parse_onlineRepos(url, ext=''):
                 for tree in value:
                     for attribute, value in tree.items():
                         if attribute == "path":
-                            if value.endswith(ext):
+                            if value.endswith(ext) and not 'total-conversion-build.user.js' in value and not 'user-location.user.js' in value and not 'test' in value:
                                 files.append(url.replace("https://api.github.com/repos/", "https://raw.githubusercontent.com/").replace("git/trees/",'').replace("master?recursive=1","master/") + value)
         return files
     else:
