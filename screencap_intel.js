@@ -34,7 +34,7 @@ if (validateEmail(SACSID)) {
       firePlainLogin();
     } else {
       addCookies(config.SACSID, config.CSRF);
-      announce('Using cookies to log in');
+      console.log('Using cookies to log in');
       afterCookieLogin();
     }
   });
@@ -143,7 +143,7 @@ function afterPlainLogin(IntelURL, search) {
     if (status !== 'success') {quit('unable to connect to remote server')}
 
     if (!isSignedIn()) {
-      announce('Something went wrong. Please, sign in to Google via your browser and restart ICE. Don\'t worry, your Ingress account will not be affected.');
+      console.log('Something went wrong. Please, sign in to Google via your browser and restart ICE. Don\'t worry, your Ingress account will not be affected.');
       quit();
     }
     setTimeout(function() {
