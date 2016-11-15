@@ -59,9 +59,9 @@ function loadCookies(callback) {
     while(!stream.atEnd()) {
       var line = stream.readLine().split('=');
       if(line[0] === 'SACSID') {
-        SACSID = line[1];
+        config.SACSID = line[1];
       } else if(line[0] === 'csrftoken') {
-        CSRF = line[1];
+        config.CSRF = line[1];
       } else {
         config.SACSID = '';
         config.CSRF = '';
@@ -186,6 +186,7 @@ function afterPlainLogin(IntelURL, search) {
     }
     setTimeout(function() {
         page.injectJs('https://code.jquery.com/jquery-3.1.1.min.js');
+        loadIitcPlugin('https://static.iitc.me/build/release/plugins/canvas-render.user.js');
         storeCookies();
         page.evaluate(function() {
             localStorage['ingress.intelmap.layergroupdisplayed'] = JSON.stringify({
@@ -207,7 +208,6 @@ function afterPlainLogin(IntelURL, search) {
             script.src='https://static.iitc.me/build/release/total-conversion-build.user.js';
             document.head.insertBefore(script, document.head.lastChild);
         });
-        loadIitcPlugin('https://static.iitc.me/build/release/plugins/canvas-render.user.js');
         var plugins = JSON.parse(fs.read(plugins_file));
         for(var i in plugins){
             var plugin = plugins[i];
@@ -330,6 +330,7 @@ function afterCookieLogin(IntelURL, search) {
     }
     setTimeout(function() {
         page.injectJs('https://code.jquery.com/jquery-3.1.1.min.js');
+        loadIitcPlugin('https://static.iitc.me/build/release/plugins/canvas-render.user.js');
         page.evaluate(function() {
             localStorage['ingress.intelmap.layergroupdisplayed'] = JSON.stringify({
               "Unclaimed Portals":Boolean(1 === 1),
@@ -350,7 +351,6 @@ function afterCookieLogin(IntelURL, search) {
             script.src='https://static.iitc.me/build/release/total-conversion-build.user.js';
             document.head.insertBefore(script, document.head.lastChild);
         });
-        loadIitcPlugin('https://static.iitc.me/build/release/plugins/canvas-render.user.js');
         var plugins = JSON.parse(fs.read(plugins_file));
         for(var i in plugins){
             var plugin = plugins[i];
