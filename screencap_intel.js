@@ -13,7 +13,7 @@ if (args.length === 1) {
       var IntelURL  = args[3];
       var filepath  = args[4];
       var search  = 'nix';
-      var loginTimeout = '5000';
+      var loginTimeout = '10000';
   }else{
     if (args.length === 6){
       var SACSID  = args[1];
@@ -21,7 +21,7 @@ if (args.length === 1) {
       var IntelURL  = args[3];
       var filepath  = args[4];
       var search  = args[5];
-      var loginTimeout = '5000';
+      var loginTimeout = '10000';
     }
   }
 }
@@ -29,6 +29,10 @@ if (args.length === 1) {
 function validateEmail(email) {
     var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
+}
+
+function quit(err) {
+  phantom.exit(1);
 }
 
 if (validateEmail(SACSID)) {
