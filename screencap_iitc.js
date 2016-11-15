@@ -92,6 +92,9 @@ function firePlainLogin(SACSID, CSRF) {
     if (status !== 'success') {quit('unable to connect to remote server')}
     var link = 'https://www.google.com/accounts/ServiceLogin?service=ah&passive=true&continue=https://appengine.google.com/_ah/conflogin%3Fcontinue%3Dhttps://www.ingress.com/intel&ltmpl='
     page.open(link, function () {
+      page.evaluate(function () {
+        localStorage.clear()
+      }
       login(SACSID, CSRF);
     });
   });
