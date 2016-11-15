@@ -117,9 +117,15 @@ function login(l, p) {
             page.evaluate(function (l) {
                 document.getElementById('Email').value = l;
             }, l);
-            page.evaluate(function () {
-                document.querySelector("#next").click();
-            });
+            if(document.querySelector("#next")){
+                page.evaluate(function () {
+                    document.querySelector("#next").click();
+                });
+            }else{
+                page.evaluate(function () {
+                    document.querySelector("#signIn").click();
+                });
+            }
             window.setTimeout(function () {
                 page.evaluate(function (p) {
                     document.getElementById('Passwd').value = p;
