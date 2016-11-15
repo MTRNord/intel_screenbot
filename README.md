@@ -27,7 +27,7 @@ For using the Intel Screenbot you need to add the following to the config.json:
    "SACSID": "YOUR SACSID",
    "CSRF": "YOUR CSRF",
    "plugin_dirs": [
-     "http://iitc.jonatkins.com/release/plugins"
+     "https://api.github.com/repos/iitc-project/iitc-project.github.io/git/trees/master?recursive=1"
    ]
  }
 ```  
@@ -49,7 +49,7 @@ For using the Intel Screenbot you need to add the following to the config.json:
    "email": "YOUR EMAIL",
    "password": "YOUR Password",
    "plugin_dirs": [
-     "http://iitc.jonatkins.com/release/plugins"
+     "https://api.github.com/repos/iitc-project/iitc-project.github.io/git/trees/master?recursive=1"
    ]
  }
 ```  
