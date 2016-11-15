@@ -113,9 +113,9 @@ function login(l, p) {
     page.evaluate(function () {
       document.querySelector("#next").click();
     });
-    page.evaluate(function () {
-      document.getElementById('gaia_loginform').submit();
-    });
+//     page.evaluate(function () {
+//       document.getElementById('gaia_loginform').submit();
+//     });
     window.setTimeout(function () {
       if (page.url.substring(0,40) === 'https://accounts.google.com/ServiceLogin') {
         quit('login failed: wrong email and/or password');
