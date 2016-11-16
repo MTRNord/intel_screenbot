@@ -532,7 +532,7 @@ function main() {
   window.setTimeout(function() {
     addTimestamp(getDateTime(0));
     file = filepath;
-    sleep(10000);
+    setTimeout(function(){}, 10000)
     s(file);
   }, 3000);
 }
