@@ -209,7 +209,7 @@ def intel(bot, event, *args):
             yield from bot.coro_send_message(event.conv_id, "<i>intel map is searching " + search + " and screenshooting as requested, please wait...</i>")
 
         filepath = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
-        filename = filepath.split('/', file.count('/'))[-1]
+        filename = filepath.split('/', filepath.count('/'))[-1]
         logger.debug("temporary screenshot file: {}".format(filepath))
         try:
             loop = asyncio.get_event_loop()
@@ -275,7 +275,7 @@ def iitc(bot, event, *args):
             yield from bot.coro_send_message(event.conv_id, "<i>intel map is searching " + search + " and screenshooting as requested, please wait...</i>")
 
         filepath = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
-        filename = filepath.split('/', file.count('/'))[-1]
+        filename = filepath.split('/', filepath.count('/'))[-1]
         plugins_filepath = tempfile.NamedTemporaryFile(prefix=event.conv_id, suffix=".json", delete=False).name
         logger.debug("temporary screenshot file: {}".format(filepath))
         if bot.conversation_memory_get(event.conv_id, 'iitc_plugins'):
