@@ -14,7 +14,7 @@ if (args.length === 1) {
       var filepath  = args[4];
       var plugins_file  = args[5];
       var search  = 'nix';
-      var loginTimeout = '10000';
+      var loginTimeout = '5000';
   }else{
     if (args.length === 7){
       var SACSID  = args[1];
@@ -23,7 +23,7 @@ if (args.length === 1) {
       var filepath  = args[4];
       var search  = args[5];
       var plugins_file  = args[6];
-      var loginTimeout = '10000';
+      var loginTimeout = '5000';
     }
   }
 }
@@ -36,7 +36,6 @@ function validateEmail(email) {
 function quit(err) {
   phantom.exit(1);
 }
-
 if (validateEmail(SACSID)) {
   loadCookies(function() {
     if (config.SACSID == undefined || config.SACSID == '') {
@@ -87,7 +86,6 @@ function storeCookies() {
 }
 
 function firePlainLogin(SACSID, CSRF) {
-  console.log("firePlainLogin")  
   page.open('https://www.ingress.com/intel', function (status) {
     page.evaluate(function () {
       localStorage.clear()
@@ -101,13 +99,12 @@ function firePlainLogin(SACSID, CSRF) {
 }
 
 function login(l, p) {
-  console.log("Login")
     if (document.querySelector('#timeoutError')){
         login(l, p)
         firePlainLogin(l, p)
     }
     waitFor({
-        timeout: 240000,
+        timeout: loginTimeout*2,
         check: function () {
             return page.evaluate(function() {
                 if (document.querySelector('#gaia_loginform')) {
@@ -137,9 +134,6 @@ function login(l, p) {
                         document.querySelector("#signIn").click();
                     });
                 }
-//                 page.evaluate(function () {
-//                     document.getElementById('gaia_loginform').submit();
-//                 });
                 window.setTimeout(function () {
                     if (page.url.substring(0,40) === 'https://accounts.google.com/ServiceLogin') {
                         quit('login failed: wrong email and/or password');
@@ -155,16 +149,6 @@ function login(l, p) {
                     if (page.url.substring(0,44) === 'https://accounts.google.com/signin/challenge') {
                         twostep = system.stdin.readLine();
                     }
-
-                    //       if (twostep) {
-                    //         page.evaluate(function (code) {
-                    //           document.getElementById('totpPin').value = code;
-                    //         }, twostep);
-                    //         page.evaluate(function () {
-                    //           document.getElementById('submit').click();
-                    //           document.getElementById('challenge').submit();
-                    //         });
-                    //       }
                     window.setTimeout(afterPlainLogin(IntelURL, search), loginTimeout);
                 }, loginTimeout)
             }, loginTimeout / 10);
@@ -176,7 +160,6 @@ function login(l, p) {
 }
 
 function afterPlainLogin(IntelURL, search) {
-  console.log("afterPlainLogin")
   page.viewportSize = { width: '1920', height: '1080' };
   page.open(IntelURL, function(status) {
     if (status !== 'success') {quit('unable to connect to remote server')}
@@ -185,62 +168,9 @@ function afterPlainLogin(IntelURL, search) {
       quit();
     }
     setTimeout(function() {
-        page.injectJs('https://code.jquery.com/jquery-3.1.1.min.js');
-        loadIitcPlugin('https://static.iitc.me/build/release/plugins/canvas-render.user.js');
-        storeCookies();
-        page.evaluate(function() {
-            localStorage['ingress.intelmap.layergroupdisplayed'] = JSON.stringify({
-              "Unclaimed Portals":Boolean(1 === 1),
-              "Level 1 Portals":Boolean(1 === 1),
-              "Level 2 Portals":Boolean((1 <= 2) && (8 >= 2)),
-              "Level 3 Portals":Boolean((1 <= 3) && (8 >= 3)),
-              "Level 4 Portals":Boolean((1 <= 4) && (8 >= 4)),
-              "Level 5 Portals":Boolean((1 <= 5) && (8 >= 5)),
-              "Level 6 Portals":Boolean((1 <= 6) && (8 >= 6)),
-              "Level 7 Portals":Boolean((1 <= 7) && (8 >= 7)),
-              "Level 8 Portals":Boolean(8 === 8),
-              "DEBUG Data Tiles":false,
-              "Artifacts":true,
-              "Ornaments":true
-            });
-            var script = document.createElement('script');
-            script.type='text/javascript';
-            script.src='https://static.iitc.me/build/release/total-conversion-build.user.js';
-            document.head.insertBefore(script, document.head.lastChild);
-        });
-        var plugins = JSON.parse(fs.read(plugins_file));
-        for(var i in plugins){
-            var plugin = plugins[i];
-            if(plugin.match('^[a-zA-Z]+://')){
-                loadIitcPlugin(plugin);
-            }else{
-               loadLocalIitcPlugin(plugin);
-            }
-        }
+		setupIITC()
         setTimeout(function() {
-            if (search != "nix") {
-                page.evaluate(function(search) {
-                    if (document.querySelector('#search')){
-                      window.setTimeout(function() {
-                        document.getElementById("search").value=search;
-                        var e = jQuery.Event("keypress");
-                        e.which = 13;
-                        e.keyCode = 13;
-                        $("#search").trigger(e);
-                      }, 2000);
-                      var checkExist = setInterval(function() {
-                        if ($('.searchquery').length > 0) {
-                            window.setTimeout(function() {$('.searchquery > :nth-child(2)').children()[0].click();}, 1000);
-                            clearInterval(checkExist);
-                        }
-                      }, 100);
-                    }
-                    $("span:contains('Google Roads')").prev().click();
-                    if(!$("span:contains('Google Roads')").prev().is(':checked')){
-                        $("span:contains('Google Roads')").click();
-                    }
-                }, search);
-            }
+        	searchfunc(search);
             waitFor({
                 timeout: 240000,
                 check: function () {
@@ -253,18 +183,20 @@ function afterPlainLogin(IntelURL, search) {
                     });
                 },
                 success: function () {
+					setTimeout(function(){}, 5000)
                     hideDebris();
                     prepare('1920', '1080');
                     main();
                 },
                 error: function () {
+					setTimeout(function(){}, 5000)
                     hideDebris();
                     prepare('1920', '1080');
                     main();
                 }
             });
-        }, "5000");
-    }, "5000");
+        }, "1000");
+    }, "1000");
   });
 }
 
@@ -292,11 +224,9 @@ function waitFor ($config) {
     $config._start = $config._start || new Date();
     if ($config.timeout && new Date - $config._start > $config.timeout) {
         if ($config.error) $config.error();
-        if ($config.debug) console.log('timedout ' + (new Date - $config._start) + 'ms');
         return;
     }
     if ($config.check()) {
-        if ($config.debug) console.log('success ' + (new Date - $config._start) + 'ms');
         return $config.success();
     }
     setTimeout(waitFor, $config.interval || 0, $config);
@@ -333,61 +263,9 @@ function afterCookieLogin(IntelURL, search) {
       }
     }
     setTimeout(function() {
-        page.injectJs('https://code.jquery.com/jquery-3.1.1.min.js');
-        loadIitcPlugin('https://static.iitc.me/build/release/plugins/canvas-render.user.js');
-        page.evaluate(function() {
-            localStorage['ingress.intelmap.layergroupdisplayed'] = JSON.stringify({
-              "Unclaimed Portals":Boolean(1 === 1),
-              "Level 1 Portals":Boolean(1 === 1),
-              "Level 2 Portals":Boolean((1 <= 2) && (8 >= 2)),
-              "Level 3 Portals":Boolean((1 <= 3) && (8 >= 3)),
-              "Level 4 Portals":Boolean((1 <= 4) && (8 >= 4)),
-              "Level 5 Portals":Boolean((1 <= 5) && (8 >= 5)),
-              "Level 6 Portals":Boolean((1 <= 6) && (8 >= 6)),
-              "Level 7 Portals":Boolean((1 <= 7) && (8 >= 7)),
-              "Level 8 Portals":Boolean(8 === 8),
-              "DEBUG Data Tiles":false,
-              "Artifacts":true,
-              "Ornaments":true
-            });
-            var script = document.createElement('script');
-            script.type='text/javascript';
-            script.src='https://static.iitc.me/build/release/total-conversion-build.user.js';
-            document.head.insertBefore(script, document.head.lastChild);
-        });
-        var plugins = JSON.parse(fs.read(plugins_file));
-        for(var i in plugins){
-            var plugin = plugins[i];
-            if(plugin.match('^[a-zA-Z]+://')){
-                loadIitcPlugin(plugin);
-            }else{
-               loadLocalIitcPlugin(plugin);
-            }
-        }
+    	setupIITC()
         setTimeout(function() {
-            if (search != "nix") {
-                page.evaluate(function(search) {
-                    if (document.querySelector('#search')){
-                      window.setTimeout(function() {
-                        document.getElementById("search").value=search;
-                        var e = jQuery.Event("keypress");
-                        e.which = 13;
-                        e.keyCode = 13;
-                        $("#search").trigger(e);
-                      }, 2000);
-                      var checkExist = setInterval(function() {
-                        if ($('.searchquery').length > 0) {
-                            window.setTimeout(function() {$('.searchquery > :nth-child(2)').children()[0].click();}, 1000);
-                            clearInterval(checkExist);
-                        }
-                      }, 100);
-                    }
-                    $("span:contains('Google Roads')").prev().click();
-                    if(!$("span:contains('Google Roads')").prev().is(':checked')){
-                        $("span:contains('Google Roads')").click();
-                    }
-                }, search);
-            }
+        	searchfunc(search);
             waitFor({
                 timeout: 240000,
                 check: function () {
@@ -400,19 +278,82 @@ function afterCookieLogin(IntelURL, search) {
                     });
                 },
                 success: function () {
+					setTimeout(function(){}, 5000)
                     hideDebris();
                     prepare('1920', '1080');
                     main();
                 },
                 error: function () {
+					setTimeout(function(){}, 5000)
                     hideDebris();
                     prepare('1920', '1080');
                     main();
                 }
             });
-        }, "5000");
-    }, "5000");
+        }, "1000");
+    }, "1000");
   });
+}
+
+function searchfunc(search){
+	if (search != "nix") {
+	    page.evaluate(function(search) {
+	        if (document.querySelector('#search')){
+	        	document.getElementById("search").value=search;
+	          	window.setTimeout(function() {
+	            	var e = jQuery.Event("keypress");
+	            	e.which = 13;
+	            	e.keyCode = 13;
+	            	$("#search").trigger(e);
+	          	}, 2000);
+	          	var checkExist = setInterval(function() {
+	            	if ($('.searchquery').length > 0) {
+	                	window.setTimeout(function() {$('.searchquery > :nth-child(2)').children()[0].click();}, 4000);
+	                	clearInterval(checkExist);
+	            	}
+	          	}, 100);
+	        }
+	    }, search);
+	}
+}
+
+function setupIITC(){
+    page.injectJs('https://code.jquery.com/jquery-3.1.1.min.js');
+    loadIitcPlugin('https://static.iitc.me/build/release/plugins/canvas-render.user.js');
+    page.evaluate(function() {
+        localStorage['ingress.intelmap.layergroupdisplayed'] = JSON.stringify({
+          "Unclaimed Portals": true,
+          "Level 1 Portals": true,
+          "Level 2 Portals": true,
+          "Level 3 Portals": true,
+          "Level 4 Portals": true,
+          "Level 5 Portals": true,
+          "Level 6 Portals": true,
+          "Level 7 Portals": true,
+          "Level 8 Portals": true,
+		  "Fields": true,
+		  "Links": true,
+		  "Resistance": true,
+		  "Enlightened": true,
+          "DEBUG Data Tiles":false,
+          "Artifacts":true,
+          "Ornaments":true
+        });
+        var script = document.createElement('script');
+        script.type='text/javascript';
+        script.src='https://static.iitc.me/build/test/total-conversion-build.user.js';
+        document.head.insertBefore(script, document.head.lastChild);
+    	localStorage['iitc-base-map'] = 'Google Roads';
+    });
+    var plugins = JSON.parse(fs.read(plugins_file));
+    for(var i in plugins){
+        var plugin = plugins[i];
+        if(plugin.match('^[a-zA-Z]+://')){
+            loadIitcPlugin(plugin);
+        }else{
+           loadLocalIitcPlugin(plugin);
+        }
+    }
 }
 
 function s(file) {
@@ -430,8 +371,9 @@ function hideDebris() {
       if (document.querySelector('#sidebartoggle'))             {document.querySelector('#sidebartoggle').style.display = 'none';}
       if (document.querySelector('#scrollwrapper'))             {document.querySelector('#scrollwrapper').style.display = 'none';}
       if (document.querySelector('.leaflet-control-container')) {document.querySelector('.leaflet-control-container').style.display = 'none';}
+      if (document.querySelector('#portal_highlight_select')) {document.querySelector('#portal_highlight_select').style.display = 'none';}
     });
-  }, 2000);
+  }, 200);
 }
 
 function prepare(widthz, heightz) {
@@ -450,7 +392,7 @@ function prepare(widthz, heightz) {
         }, widthz, heightz);
         var selector = "#viewport-ice";
         setElementBounds(selector);
-    }, 4000);
+    }, 500);
 }
 
 
@@ -532,7 +474,6 @@ function main() {
   window.setTimeout(function() {
     addTimestamp(getDateTime(0));
     file = filepath;
-    setTimeout(function(){}, 10000)
     s(file);
-  }, 3000);
+  }, 400);
 }
