@@ -478,10 +478,10 @@ function getDateTime(format) {
 }
 
 function addTimestamp(time) {
-  page.evaluate(function(dateTime) {
+  page.evaluate(function(dateTime, search) {
     var water = document.createElement('p');
     water.id='watermark-ice';
-    water.innerHTML = dateTime;
+    water.innerHTML = dateTime + ' - ' + search;
     water.style.position = 'absolute';
     water.style.color = '#3A539B';
     water.style.top = '0';
@@ -492,9 +492,9 @@ function addTimestamp(time) {
     water.style.fontSize = '40px';
     water.style.opacity = '0.8';
     water.style.fontFamily = 'monospace';
-    water.style.textShadow = 'rgb(3, 3, 3) 7px 5px 9px';
+    water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
     document.querySelectorAll('body')[0].appendChild(water);
-  }, time);
+  }, time, search);
 }
 
 /**
