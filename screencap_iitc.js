@@ -34,7 +34,7 @@ function validateEmail(email) {
 }
 
 function quit(err) {
-  phantom.exit(1);
+  phantom.exit(0);
 }
 if (validateEmail(SACSID)) {
   loadCookies(function() {
@@ -178,18 +178,33 @@ function afterPlainLogin(IntelURL, search) {
                         if (document.querySelector('.map').textContent.indexOf('done') != -1) {
                             return true;
                         }else{
+                            console.log('generateFakeOutput')
                             return false;
                         }
                     });
                 },
                 success: function () {
-					setTimeout(function(){}, 5000)
+                  var startTime = new Date().getTime();
+                  var interval = setInterval(function(){
+                    if(new Date().getTime() - startTime > 5000){
+                      clearInterval(interval);
+                      return;
+                    }
+                    console.log('generateFakeOutput')
+                  }, 1000);
                     hideDebris();
                     prepare('1920', '1080');
                     main();
                 },
                 error: function () {
-					setTimeout(function(){}, 5000)
+                  var startTime = new Date().getTime();
+                  var interval = setInterval(function(){
+                    if(new Date().getTime() - startTime > 5000){
+                      clearInterval(interval);
+                      return;
+                    }
+                    console.log('generateFakeOutput')
+                  }, 1000);
                     hideDebris();
                     prepare('1920', '1080');
                     main();
@@ -273,18 +288,33 @@ function afterCookieLogin(IntelURL, search) {
                         if (document.querySelector('.map').textContent.indexOf('done') != -1) {
                             return true;
                         }else{
+                            console.log('generateFakeOutput')
                             return false;
                         }
                     });
                 },
                 success: function () {
-					setTimeout(function(){}, 5000)
+                  var startTime = new Date().getTime();
+                  var interval = setInterval(function(){
+                    if(new Date().getTime() - startTime > 5000){
+                      clearInterval(interval);
+                      return;
+                    }
+                    console.log('generateFakeOutput')
+                  }, 1000);
                     hideDebris();
                     prepare('1920', '1080');
                     main();
                 },
                 error: function () {
-					setTimeout(function(){}, 5000)
+                  var startTime = new Date().getTime();
+                  var interval = setInterval(function(){
+                    if(new Date().getTime() - startTime > 5000){
+                      clearInterval(interval);
+                      return;
+                    }
+                    console.log('generateFakeOutput')
+                  }, 1000);
                     hideDebris();
                     prepare('1920', '1080');
                     main();
@@ -358,6 +388,14 @@ function setupIITC(){
 
 function s(file) {
   page.render(file);
+  var startTime = new Date().getTime();
+  var interval = setInterval(function(){
+    if(new Date().getTime() - startTime > 5000){
+      clearInterval(interval);
+      return;
+    }
+    console.log('generateFakeOutput')
+  }, 1000);
   phantom.exit(0);
 }
 
