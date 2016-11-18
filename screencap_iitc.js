@@ -160,7 +160,7 @@ function login(l, p) {
 }
 
 function afterPlainLogin(IntelURL, search) {
-  page.viewportSize = { width: '1920', height: '1080' };
+  page.viewportSize = { width: '1280', height: '720' };
   page.open(IntelURL, function(status) {
     if (status !== 'success') {quit('unable to connect to remote server')}
     if (!isSignedIn()) {
@@ -188,7 +188,7 @@ function afterPlainLogin(IntelURL, search) {
                   var interval = setInterval(function(){
                     if(new Date().getTime() - startTime > 5000){
                       hideDebris();
-                      prepare('1920', '1080');
+                      prepare('1280', '720');
                       main();
                       clearInterval(interval);
                       return;
@@ -201,7 +201,7 @@ function afterPlainLogin(IntelURL, search) {
                   var interval = setInterval(function(){
                     if(new Date().getTime() - startTime > 5000){
                       hideDebris();
-                      prepare('1920', '1080');
+                      prepare('1280', '720');
                       main();
                       clearInterval(interval);
                       return;
@@ -261,7 +261,7 @@ function loadLocalIitcPlugin(src) {
 }
 
 function afterCookieLogin(IntelURL, search) {
-  page.viewportSize = { width: '1920', height: '1080' };
+  page.viewportSize = { width: '1280', height: '720' };
   page.open(IntelURL, function(status) {
     if (status !== 'success') {quit('unable to connect to remote server')}
     if(!isSignedIn()) {
@@ -298,7 +298,7 @@ function afterCookieLogin(IntelURL, search) {
                   var interval = setInterval(function(){
                     if(new Date().getTime() - startTime > 5000){
                       hideDebris();
-                      prepare('1920', '1080');
+                      prepare('1280', '720');
                       main();
                       clearInterval(interval);
                       return;
@@ -311,7 +311,7 @@ function afterCookieLogin(IntelURL, search) {
                   var interval = setInterval(function(){
                     if(new Date().getTime() - startTime > 5000){
                       hideDebris();
-                      prepare('1920', '1080');
+                      prepare('1280', '720');
                       main();
                       clearInterval(interval);
                       return;
@@ -357,10 +357,10 @@ function setupIITC(){
           "Level 6 Portals": true,
           "Level 7 Portals": true,
           "Level 8 Portals": true,
-          "Fields": true,
-	  "Links": true,
-	  "Resistance": true,
-	  "Enlightened": true,
+		      "Fields": true,
+		      "Links": true,
+		      "Resistance": true,
+		      "Enlightened": true,
           "DEBUG Data Tiles":false,
           "Artifacts":true,
           "Ornaments":true
