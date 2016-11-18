@@ -170,7 +170,7 @@ function afterPlainLogin(IntelURL, search) {
     setTimeout(function() {
 		setupIITC()
         setTimeout(function() {
-        	searchfunc(search);
+          setTimeout(function() {if (search != "nix") {searchfunc(search);}}, 1000);
             waitFor({
                 timeout: 240000,
                 check: function () {
@@ -187,27 +187,27 @@ function afterPlainLogin(IntelURL, search) {
                   var startTime = new Date().getTime();
                   var interval = setInterval(function(){
                     if(new Date().getTime() - startTime > 5000){
+                      hideDebris();
+                      prepare('1920', '1080');
+                      main();
                       clearInterval(interval);
                       return;
                     }
                     console.log('generateFakeOutput')
                   }, 1000);
-                    hideDebris();
-                    prepare('1920', '1080');
-                    main();
                 },
                 error: function () {
                   var startTime = new Date().getTime();
                   var interval = setInterval(function(){
                     if(new Date().getTime() - startTime > 5000){
+                      hideDebris();
+                      prepare('1920', '1080');
+                      main();
                       clearInterval(interval);
                       return;
                     }
                     console.log('generateFakeOutput')
                   }, 1000);
-                    hideDebris();
-                    prepare('1920', '1080');
-                    main();
                 }
             });
         }, "1000");
@@ -280,7 +280,7 @@ function afterCookieLogin(IntelURL, search) {
     setTimeout(function() {
     	setupIITC()
         setTimeout(function() {
-        	searchfunc(search);
+          if (search != "nix") {searchfunc(search);}
             waitFor({
                 timeout: 240000,
                 check: function () {
@@ -297,27 +297,27 @@ function afterCookieLogin(IntelURL, search) {
                   var startTime = new Date().getTime();
                   var interval = setInterval(function(){
                     if(new Date().getTime() - startTime > 5000){
+                      hideDebris();
+                      prepare('1920', '1080');
+                      main();
                       clearInterval(interval);
                       return;
                     }
                     console.log('generateFakeOutput')
                   }, 1000);
-                    hideDebris();
-                    prepare('1920', '1080');
-                    main();
                 },
                 error: function () {
                   var startTime = new Date().getTime();
                   var interval = setInterval(function(){
                     if(new Date().getTime() - startTime > 5000){
+                      hideDebris();
+                      prepare('1920', '1080');
+                      main();
                       clearInterval(interval);
                       return;
                     }
                     console.log('generateFakeOutput')
                   }, 1000);
-                    hideDebris();
-                    prepare('1920', '1080');
-                    main();
                 }
             });
         }, "1000");
@@ -326,29 +326,25 @@ function afterCookieLogin(IntelURL, search) {
 }
 
 function searchfunc(search){
-	if (search != "nix") {
-	    page.evaluate(function(search) {
-	        if (document.querySelector('#search')){
-	        	document.getElementById("search").value=search;
-	          	window.setTimeout(function() {
-	            	var e = jQuery.Event("keypress");
-	            	e.which = 13;
-	            	e.keyCode = 13;
-	            	$("#search").trigger(e);
-	          	}, 2000);
-	          	var checkExist = setInterval(function() {
-	            	if ($('.searchquery').length > 0) {
-	                	window.setTimeout(function() {$('.searchquery > :nth-child(2)').children()[0].click();}, 4000);
-	                	clearInterval(checkExist);
-	            	}
-	          	}, 100);
-	        }
-	    }, search);
-	}
+  page.evaluate(function(search) {
+    if (document.querySelector('#search')){
+        window.addHook('search', function(query) {
+          var checkExist = setInterval(function() {
+            if (query.results.length > 0) {
+              console.warn(query.results)
+              map.fitBounds(query.results[0].bounds, {maxZoom: 17})
+              clearInterval(checkExist);
+            }
+          }, 100);
+        });
+      setTimeout(function() {
+        window.search.doSearch(search, true)
+      }, 2000);
+    }
+  }, search);
 }
 
 function setupIITC(){
-    page.injectJs('https://code.jquery.com/jquery-3.1.1.min.js');
     loadIitcPlugin('https://static.iitc.me/build/release/plugins/canvas-render.user.js');
     page.evaluate(function() {
         localStorage['ingress.intelmap.layergroupdisplayed'] = JSON.stringify({
@@ -361,10 +357,10 @@ function setupIITC(){
           "Level 6 Portals": true,
           "Level 7 Portals": true,
           "Level 8 Portals": true,
-		  "Fields": true,
-		  "Links": true,
-		  "Resistance": true,
-		  "Enlightened": true,
+          "Fields": true,
+	  "Links": true,
+	  "Resistance": true,
+	  "Enlightened": true,
           "DEBUG Data Tiles":false,
           "Artifacts":true,
           "Ornaments":true
@@ -387,16 +383,18 @@ function setupIITC(){
 }
 
 function s(file) {
+  console.log('SCREENSHOT')
   page.render(file);
+  var startTime = new Date().getTime();
   var startTime = new Date().getTime();
   var interval = setInterval(function(){
     if(new Date().getTime() - startTime > 5000){
       clearInterval(interval);
+      phantom.exit(0);
       return;
     }
-    console.log('generateFakeOutput')
+    console.log('doSomeOutput')
   }, 1000);
-  phantom.exit(0);
 }
 
 function hideDebris() {
