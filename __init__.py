@@ -78,11 +78,10 @@ def _get_iitc_plugins(bot):
     else:
         bot.memory.set_by_path(["iitc_plugins"], iitc_plugins)
 
-@asyncio.coroutine
 def _get_lines(shell_command):
-    p = yield from asyncio.create_subprocess_shell(shell_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    stdout, stderr = yield from p.communicate()
-    return p.returncode, stdout
+    p = yield from asyncio.create_subprocess_shell(shell_command)
+    output = yield from p.wait()
+    return p.returncode, output, True
 
 @asyncio.coroutine
 def _screencap(maptype, url, filepath, filename, SACSID, CSRF, plugins, search, bot, event):
@@ -92,36 +91,38 @@ def _screencap(maptype, url, filepath, filename, SACSID, CSRF, plugins, search, 
         if search == False:
             command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '"'
             task = _get_lines(command)
-            task = asyncio.wait_for(task, 420.0, loop=loop)
-            exitcode, stdout = loop.run_until_complete(task)
+            task = asyncio.wait_for(task, 420.0)
+            exitcode, output, status = yield from task
         else:
             command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '" "' + search + '"'
             task = _get_lines(command)
-            task = asyncio.wait_for(task, 420.0, loop=loop)
-            exitcode, stdout = yield from task
+            task = asyncio.wait_for(task, 420.0)
+            exitcode, output, status = yield from task
     else:
         if search == False:
             command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '" "' + plugins + '"'
             task = _get_lines(command)
-            task = asyncio.wait_for(task, 420.0, loop=loop)
-            exitcode, stdout = loop.run_until_complete(task)
+            task = asyncio.wait_for(task, 420.0)
+            exitcode, output, status = yield from task
         else:
             command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '" "' + search + '" "' + plugins + '"'
             task = _get_lines(command)
-            task = asyncio.wait_for(task, 420.0, loop=loop)
-            exitcode, stdout = yield from task
+            task = asyncio.wait_for(task, 420.0)
+            exitcode, output, status = yield from task
 
     # read the resulting file into a byte array
-    yield from asyncio.sleep(3)
+    # yield from asyncio.sleep(10)
     file_resource = yield from _open_file(filepath)
     file_data = yield from loop.run_in_executor(None, file_resource.read)
     image_data = yield from loop.run_in_executor(None, io.BytesIO, file_data)
-    try:
-        image_id = yield from bot._client.upload_image(image_data, filename=filename)
-        yield from bot._client.sendchatmessage(event.conv.id_, None, image_id=image_id)
-    except Exception as e:
-        yield from bot.coro_send_message(event.conv_id, "<i>error uploading screenshot</i>")
-        logger.exception("upload failed".format(url))
+    if status:
+        try:
+            image_id = yield from bot._client.upload_image(image_data, filename=filename)
+            yield from bot._client.sendchatmessage(event.conv.id_, None, image_id=image_id)
+        except Exception as e:
+            logger.exception("upload failed: {}".format(url))
+            logger.exception("exception: {}".format(e))
+            yield from bot.coro_send_message(event.conv_id, "<i>error uploading screenshot</i>")
 
 
 def setintel(bot, event, *args):
