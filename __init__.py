@@ -13,14 +13,16 @@ logger = logging.getLogger(__name__)
 
 
 def _initialise(bot):
-    plugins.register_user_command(["intel", "iitc"])
-    plugins.register_admin_command(["setintel", "clearintel", "show_iitcplugins", "set_iitcplugins", "clear_iitcplugins"])
+    plugins.register_user_command(["intel", "iitc", "active_iitcplugins"])
+    plugins.register_admin_command(["setintel", "show_iitcplugins", "set_iitcplugins"])
     _get_iitc_plugins(bot)
 
 
 @asyncio.coroutine
 def _open_file(name):
     logger.debug("opening screenshot file: {}".format(name))
+    statinfo = os.stat(name)
+    logger.info(statinfo.st_size)
     return open(name, 'rb')
 
 def _parse_onlineRepos(url, ext=''):
@@ -112,6 +114,7 @@ def _screencap(maptype, url, filepath, filename, SACSID, CSRF, plugins, search, 
 
     # read the resulting file into a byte array
     # yield from asyncio.sleep(10)
+    logger.info(filepath)
     file_resource = yield from _open_file(filepath)
     file_data = yield from loop.run_in_executor(None, file_resource.read)
     image_data = yield from loop.run_in_executor(None, io.BytesIO, file_data)
@@ -136,22 +139,9 @@ def setintel(bot, event, *args):
         yield from bot.coro_send_message(event.conv, html)
 
     else:
-        html = "<i><b>{}</b> URL already exists for this conversation!<br /><br />".format(event.user.full_name)
-        html += "<i>Clear it first with /bot clearintel before setting a new one."
-        yield from bot.coro_send_message(event.conv, html)
-
-
-def clearintel(bot, event, *args):
-    """clear url for current converation for the intel or iitc command.
-    """
-    url = bot.conversation_memory_get(event.conv_id, 'IntelURL')
-    if url is None:
-        html = "<i><b>{}</b> nothing to clear for this conversation".format(event.user.full_name)
-        yield from bot.coro_send_message(event.conv, html)
-
-    else:
         bot.conversation_memory_set(event.conv_id, 'IntelURL', None)
-        html = "<i><b>{}</b> URL cleared for this conversation!<br />".format(event.user.full_name)
+        bot.conversation_memory_set(event.conv_id, 'IntelURL', ''.join(args))
+        html = "<i><b>{}</b> updated screenshot URL".format(event.user.full_name)
         yield from bot.coro_send_message(event.conv, html)
 
 
@@ -312,20 +302,21 @@ def show_iitcplugins(bot, event, *args):
 
 def set_iitcplugins(bot, event, *args):
     if not bot.conversation_memory_get(event.conv_id, 'iitc_plugins') is None:
-        html = "<i><b>{}</b> plugins already set for this conversation!<br /><br />".format(event.user.full_name)
-        html += "<i>Clear them first with /bot clear_iitcplugins before setting new ones."
+        bot.conversation_memory_set(event.conv_id, 'iitc_plugins', None)
+        bot.conversation_memory_set(event.conv_id, 'iitc_plugins', ', '.join(args))
+        html = "<i><b>{}</b> updated plugins".format(event.user.full_name)
         yield from bot.coro_send_message(event.conv, html)
     else:
         bot.conversation_memory_set(event.conv_id, 'iitc_plugins', ', '.join(args))
         html = "<i><b>{}</b> updated plugins".format(event.user.full_name)
         yield from bot.coro_send_message(event.conv, html)
 
-def clear_iitcplugins(bot, event, *args):
+def active_iitcplugins(bot, event, *args):
     if bot.conversation_memory_get(event.conv_id, 'iitc_plugins') is None:
-        html = "<i><b>{}</b> nothing to clear for this conversation".format(event.user.full_name)
+        html = "<i><b>{}</b> no active IITC Plugins for this conversation".format(event.user.full_name)
         yield from bot.coro_send_message(event.conv, html)
 
     else:
-        bot.conversation_memory_set(event.conv_id, 'iitc_plugins', None)
-        html = "<i><b>{}</b> plugins cleared for this conversation!<br />".format(event.user.full_name)
+        plugins = bot.conversation_memory_get(event.conv_id, 'iitc_plugins')
+        html = "<i><b>{}</b> plugins for this conversation: {}<br />".format(event.user.full_name, plugins)
         yield from bot.coro_send_message(event.conv, html)
