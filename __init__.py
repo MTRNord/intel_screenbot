@@ -41,7 +41,7 @@ def _parse_onlineRepos(url, ext=''):
                 for tree in value:
                     for attribute, value in tree.items():
                         if attribute == "path":
-                            if value.endswith(ext):
+                            if value.endswith(ext) and not 'total-conversion-build.user.js' in value and not 'user-location.user.js' in value and not 'test' in value:
                                 files.append(url.replace("https://api.github.com/repos/", "https://raw.githubusercontent.com/").replace("git/trees/",'').replace("master?recursive=1","master/") + value)
         return files
     else:
@@ -78,11 +78,10 @@ def _get_iitc_plugins(bot):
     else:
         bot.memory.set_by_path(["iitc_plugins"], iitc_plugins)
 
-@asyncio.coroutine
 def _get_lines(shell_command):
-    p = yield from asyncio.create_subprocess_shell(shell_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    stdout, stderr = yield from p.communicate()
-    return p.returncode, stdout
+    p = yield from asyncio.create_subprocess_shell(shell_command)
+    output = yield from p.wait()
+    return p.returncode, output, True
 
 @asyncio.coroutine
 def _screencap(maptype, url, filepath, filename, SACSID, CSRF, plugins, search, bot, event):
@@ -92,35 +91,38 @@ def _screencap(maptype, url, filepath, filename, SACSID, CSRF, plugins, search, 
         if search == False:
             command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '"'
             task = _get_lines(command)
-            task = asyncio.wait_for(task, 180.0, loop=self.loop)
-            exitcode, stdout = loop.run_until_complete(task)
+            task = asyncio.wait_for(task, 420.0)
+            exitcode, output, status = yield from task
         else:
             command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '" "' + search + '"'
             task = _get_lines(command)
-            task = asyncio.wait_for(task, 180.0, loop=loop)
-            exitcode, stdout = yield from task
+            task = asyncio.wait_for(task, 420.0)
+            exitcode, output, status = yield from task
     else:
         if search == False:
             command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '" "' + plugins + '"'
             task = _get_lines(command)
-            task = asyncio.wait_for(task, 180.0, loop=self.loop)
-            exitcode, stdout = loop.run_until_complete(task)
+            task = asyncio.wait_for(task, 420.0)
+            exitcode, output, status = yield from task
         else:
             command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '" "' + search + '" "' + plugins + '"'
             task = _get_lines(command)
-            task = asyncio.wait_for(task, 180.0, loop=loop)
-            exitcode, stdout = yield from task
+            task = asyncio.wait_for(task, 420.0)
+            exitcode, output, status = yield from task
 
     # read the resulting file into a byte array
+    # yield from asyncio.sleep(10)
     file_resource = yield from _open_file(filepath)
     file_data = yield from loop.run_in_executor(None, file_resource.read)
     image_data = yield from loop.run_in_executor(None, io.BytesIO, file_data)
-    try:
-        image_id = yield from bot._client.upload_image(image_data, filename=filename)
-        yield from bot._client.sendchatmessage(event.conv.id_, None, image_id=image_id)
-    except Exception as e:
-        yield from bot.coro_send_message(event.conv_id, "<i>error uploading screenshot</i>")
-        logger.exception("upload failed".format(url))
+    if status:
+        try:
+            image_id = yield from bot._client.upload_image(image_data, filename=filename)
+            yield from bot._client.sendchatmessage(event.conv.id_, None, image_id=image_id)
+        except Exception as e:
+            logger.exception("upload failed: {}".format(url))
+            logger.exception("exception: {}".format(e))
+            yield from bot.coro_send_message(event.conv_id, "<i>error uploading screenshot</i>")
 
 
 def setintel(bot, event, *args):
@@ -168,14 +170,21 @@ def intel(bot, event, *args):
         url = bot.conversation_memory_get(event.conv_id, 'IntelURL')
 
     if bot.config.exists(["intel_screenbot", "SACSID"]):
-        SACSID = bot.config.get_by_path(["intel_screenbot", "SACSID"])
+        if bot.config.exists(["intel_screenbot", "CSRF"]):
+            SACSID = bot.config.get_by_path(["intel_screenbot", "SACSID"])
+            CSRF = bot.config.get_by_path(["intel_screenbot", "CSRF"])
+        else:
+            html = "<i><b>{}</b> No Intel password has been added to config. Unable to authenticate".format(event.user.full_name)
+            yield from bot.coro_send_message(event.conv, html)
+    elif bot.config.exists(["intel_screenbot", "email"]):
+        if bot.config.exists(["intel_screenbot", "password"]):
+            SACSID = bot.config.get_by_path(["intel_screenbot", "email"])
+            CSRF = bot.config.get_by_path(["intel_screenbot", "password"])
+        else:
+            html = "<i><b>{}</b> No Intel password has been added to config. Unable to authenticate".format(event.user.full_name)
+            yield from bot.coro_send_message(event.conv, html)
     else:
-        html = "<i><b>{}</b> No Intel SACSID Cookie has been added to config. Unable to authenticate".format(event.user.full_name)
-        yield from bot.coro_send_message(event.conv, html)
-    if bot.config.exists(["intel_screenbot", "CSRF"]):
-        CSRF = bot.config.get_by_path(["intel_screenbot", "CSRF"])
-    else:
-        html = "<i><b>{}</b> No Intel CSRF Cookie has been added to config. Unable to authenticate".format(event.user.full_name)
+        html = "<i><b>{}</b> No Intel SACSID Cookie or Email/password has been added to config. Unable to authenticate".format(event.user.full_name)
         yield from bot.coro_send_message(event.conv, html)
 
     if url is None:
@@ -200,8 +209,8 @@ def intel(bot, event, *args):
             url = 'https://www.ingress.com/intel'
             yield from bot.coro_send_message(event.conv_id, "<i>intel map is searching " + search + " and screenshooting as requested, please wait...</i>")
 
-        filename = event.conv_id + "." + str(time.time()) +".png"
-        filepath = tempfile.NamedTemporaryFile(prefix=event.conv_id, suffix=".png", delete=False).name
+        filepath = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
+        filename = filepath.split('/', filepath.count('/'))[-1]
         logger.debug("temporary screenshot file: {}".format(filepath))
         try:
             loop = asyncio.get_event_loop()
@@ -227,16 +236,23 @@ def iitc(bot, event, *args):
         url = bot.conversation_memory_get(event.conv_id, 'IntelURL')
 
     if bot.config.exists(["intel_screenbot", "SACSID"]):
-        SACSID = bot.config.get_by_path(["intel_screenbot", "SACSID"])
+        if bot.config.exists(["intel_screenbot", "CSRF"]):
+            SACSID = bot.config.get_by_path(["intel_screenbot", "SACSID"])
+            CSRF = bot.config.get_by_path(["intel_screenbot", "CSRF"])
+        else:
+            html = "<i><b>{}</b> No Intel password has been added to config. Unable to authenticate".format(event.user.full_name)
+            yield from bot.coro_send_message(event.conv, html)
+    elif bot.config.exists(["intel_screenbot", "email"]):
+        if bot.config.exists(["intel_screenbot", "password"]):
+            SACSID = bot.config.get_by_path(["intel_screenbot", "email"])
+            CSRF = bot.config.get_by_path(["intel_screenbot", "password"])
+        else:
+            html = "<i><b>{}</b> No Intel password has been added to config. Unable to authenticate".format(event.user.full_name)
+            yield from bot.coro_send_message(event.conv, html)
     else:
-        html = "<i><b>{}</b> No Intel SACSID Cookie has been added to config. Unable to authenticate".format(event.user.full_name)
+        html = "<i><b>{}</b> No Intel SACSID Cookie or Email/password has been added to config. Unable to authenticate".format(event.user.full_name)
         yield from bot.coro_send_message(event.conv, html)
-    if bot.config.exists(["intel_screenbot", "CSRF"]):
-        CSRF = bot.config.get_by_path(["intel_screenbot", "CSRF"])
-    else:
-        html = "<i><b>{}</b> No Intel CSRF Cookie has been added to config. Unable to authenticate".format(event.user.full_name)
-        yield from bot.coro_send_message(event.conv, html)
-
+        
     if url is None:
         html = "<i><b>{}</b> No Intel URL has been set for screenshots.".format(event.user.full_name)
         yield from bot.coro_send_message(event.conv, html)
@@ -259,8 +275,8 @@ def iitc(bot, event, *args):
             url = 'https://www.ingress.com/intel'
             yield from bot.coro_send_message(event.conv_id, "<i>intel map is searching " + search + " and screenshooting as requested, please wait...</i>")
 
-        filename = event.conv_id + "." + str(time.time()) +".png"
-        filepath = tempfile.NamedTemporaryFile(prefix=event.conv_id, suffix=".png", delete=False).name
+        filepath = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
+        filename = filepath.split('/', filepath.count('/'))[-1]
         plugins_filepath = tempfile.NamedTemporaryFile(prefix=event.conv_id, suffix=".json", delete=False).name
         logger.debug("temporary screenshot file: {}".format(filepath))
         if bot.conversation_memory_get(event.conv_id, 'iitc_plugins'):
@@ -273,10 +289,10 @@ def iitc(bot, event, *args):
                             plugins.append(plugin_objects["url"])
         else:
              plugins = ''
-        
+
         with open(plugins_filepath, 'w') as out:
             out.write(json.dumps(plugins))
-        
+
         try:
             loop = asyncio.get_event_loop()
             image_data = yield from _screencap("iitc", url, filepath, filename, SACSID, CSRF, plugins_filepath, search, bot, event)

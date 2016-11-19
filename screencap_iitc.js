@@ -2,6 +2,8 @@ var system = require('system');
 var args = system.args;
 var page = require('webpage').create();
 var fs = require('fs');
+var cookiespath = '.iced_cookies';
+var config = '';
 if (args.length === 1) {
     console.log('Try to pass some args when invoking this script!');
 } else {
@@ -12,6 +14,7 @@ if (args.length === 1) {
       var filepath  = args[4];
       var plugins_file  = args[5];
       var search  = 'nix';
+      var loginTimeout = '5000';
   }else{
     if (args.length === 7){
       var SACSID  = args[1];
@@ -20,9 +23,199 @@ if (args.length === 1) {
       var filepath  = args[4];
       var search  = args[5];
       var plugins_file  = args[6];
+      var loginTimeout = '5000';
     }
   }
 }
+
+function validateEmail(email) {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
+}
+
+function quit(err) {
+  phantom.exit(0);
+}
+if (validateEmail(SACSID)) {
+  loadCookies(function() {
+    if (config.SACSID == undefined || config.SACSID == '') {
+      firePlainLogin(SACSID, CSRF);
+    } else {
+      addCookies(config.SACSID, config.CSRF);
+      console.log('Using cookies to log in');
+      afterCookieLogin();
+    }
+  });
+}else {
+  addCookies(SACSID, CSRF);
+  afterCookieLogin(IntelURL, search);
+}
+
+function loadCookies(callback) {
+  if(fs.exists(cookiespath)) {
+    var stream = fs.open(cookiespath, 'r');
+
+    while(!stream.atEnd()) {
+      var line = stream.readLine().split('=');
+      if(line[0] === 'SACSID') {
+        config.SACSID = line[1];
+      } else if(line[0] === 'csrftoken') {
+        config.CSRF = line[1];
+      } else {
+        config.SACSID = '';
+        config.CSRF = '';
+      }
+    }
+    stream.close();
+  }
+  callback();
+}
+
+function isSignedIn() {
+  return page.evaluate(function() {
+    return document.getElementsByTagName('a')[0].innerText.trim() !== 'Sign in';
+  });
+}
+
+function storeCookies() {
+  var cookies = page.cookies;
+  fs.write(cookiespath, '', 'w');
+  for(var i in cookies) {
+    fs.write(cookiespath, cookies[i].name + '=' + cookies[i].value +'\n', 'a');
+  }
+}
+
+function firePlainLogin(SACSID, CSRF) {
+  page.open('https://www.ingress.com/intel', function (status) {
+    page.evaluate(function () {
+      localStorage.clear()
+    });
+    if (status !== 'success') {quit('unable to connect to remote server')}
+    var link = 'https://www.google.com/accounts/ServiceLogin?service=ah&passive=true&continue=https://appengine.google.com/_ah/conflogin%3Fcontinue%3Dhttps://www.ingress.com/intel&ltmpl='
+    page.open(link, function () {
+      login(SACSID, CSRF);
+    });
+  });
+}
+
+function login(l, p) {
+    if (document.querySelector('#timeoutError')){
+        login(l, p)
+        firePlainLogin(l, p)
+    }
+    waitFor({
+        timeout: loginTimeout*2,
+        check: function () {
+            return page.evaluate(function() {
+                if (document.querySelector('#gaia_loginform')) {
+                    return true;
+                }else{
+                    return false;
+                }
+            });
+        },
+        success: function () {
+            page.evaluate(function (l) {
+                document.getElementById('Email').value = l;
+            }, l);
+            page.evaluate(function () {
+                document.querySelector("#next").click();
+            });
+            window.setTimeout(function () {
+                page.evaluate(function (p) {
+                    document.getElementById('Passwd').value = p;
+                }, p);
+                if(document.querySelector("#next")){
+                    page.evaluate(function () {
+                        document.querySelector("#next").click();
+                    });
+                }else{
+                    page.evaluate(function () {
+                        document.querySelector("#signIn").click();
+                    });
+                }
+                window.setTimeout(function () {
+                    if (page.url.substring(0,40) === 'https://accounts.google.com/ServiceLogin') {
+                        quit('login failed: wrong email and/or password');
+                    }
+
+                    if (page.url.substring(0,40) === 'https://appengine.google.com/_ah/loginfo') {
+                        page.evaluate(function () {
+                            document.getElementById('persist_checkbox').checked = true;
+                            document.getElementsByTagName('form').submit();
+                        });
+                    }
+
+                    if (page.url.substring(0,44) === 'https://accounts.google.com/signin/challenge') {
+                        twostep = system.stdin.readLine();
+                    }
+                    window.setTimeout(afterPlainLogin(IntelURL, search), loginTimeout);
+                }, loginTimeout)
+            }, loginTimeout / 10);
+        },
+        error: function () {
+            quit();
+        }
+    });
+}
+
+function afterPlainLogin(IntelURL, search) {
+  page.viewportSize = { width: '1280', height: '720' };
+  page.open(IntelURL, function(status) {
+    if (status !== 'success') {quit('unable to connect to remote server')}
+    if (!isSignedIn()) {
+      console.log("not logged in")
+      quit();
+    }
+    setTimeout(function() {
+		setupIITC()
+        setTimeout(function() {
+          setTimeout(function() {if (search != "nix") {searchfunc(search);}}, 1000);
+            waitFor({
+                timeout: 240000,
+                check: function () {
+                    return page.evaluate(function() {
+                        if (document.querySelector('.map').textContent.indexOf('done') != -1) {
+                            return true;
+                        }else{
+                            console.log('generateFakeOutput')
+                            return false;
+                        }
+                    });
+                },
+                success: function () {
+                  var startTime = new Date().getTime();
+                  var interval = setInterval(function(){
+                    if(new Date().getTime() - startTime > 5000){
+                      hideDebris();
+                      prepare('1280', '720');
+                      main();
+                      clearInterval(interval);
+                      return;
+                    }
+                    console.log('generateFakeOutput')
+                  }, 1000);
+                },
+                error: function () {
+                  var startTime = new Date().getTime();
+                  var interval = setInterval(function(){
+                    if(new Date().getTime() - startTime > 5000){
+                      hideDebris();
+                      prepare('1280', '720');
+                      main();
+                      clearInterval(interval);
+                      return;
+                    }
+                    console.log('generateFakeOutput')
+                  }, 1000);
+                }
+            });
+        }, "1000");
+    }, "1000");
+  });
+}
+
+
 
 function addCookies(sacsid, csrf) {
   phantom.addCookie({
@@ -46,11 +239,9 @@ function waitFor ($config) {
     $config._start = $config._start || new Date();
     if ($config.timeout && new Date - $config._start > $config.timeout) {
         if ($config.error) $config.error();
-        if ($config.debug) console.log('timedout ' + (new Date - $config._start) + 'ms');
         return;
     }
     if ($config.check()) {
-        if ($config.debug) console.log('success ' + (new Date - $config._start) + 'ms');
         return $config.success();
     }
     setTimeout(waitFor, $config.interval || 0, $config);
@@ -69,95 +260,141 @@ function loadLocalIitcPlugin(src) {
     page.injectJs(src)
 }
 
-addCookies(SACSID, CSRF);
-afterCookieLogin(IntelURL, search);
-
 function afterCookieLogin(IntelURL, search) {
-  page.viewportSize = { width: '1920', height: '1080' };
+  page.viewportSize = { width: '1280', height: '720' };
   page.open(IntelURL, function(status) {
     if (status !== 'success') {quit('unable to connect to remote server')}
-    page.injectJs('https://code.jquery.com/jquery-3.1.1.min.js');
+    if(!isSignedIn()) {
+      if(fs.exists(cookiespath)) {
+        fs.remove(cookiespath);
+      }
+      if(validateEmail(SACSID)) {
+        page.deleteCookie('SACSID');
+        page.deleteCookie('csrftoken');
+        firePlainLogin(SACSID, CSRF);
+        return;
+      } else {
+        quit('Cookies are obsolete. Update your config file.');
+      }
+    }
     setTimeout(function() {
-        page.evaluate(function() {
-            localStorage['ingress.intelmap.layergroupdisplayed'] = JSON.stringify({
-              "Unclaimed Portals":Boolean(1 === 1),
-              "Level 1 Portals":Boolean(1 === 1),
-              "Level 2 Portals":Boolean((1 <= 2) && (8 >= 2)),
-              "Level 3 Portals":Boolean((1 <= 3) && (8 >= 3)),
-              "Level 4 Portals":Boolean((1 <= 4) && (8 >= 4)),
-              "Level 5 Portals":Boolean((1 <= 5) && (8 >= 5)),
-              "Level 6 Portals":Boolean((1 <= 6) && (8 >= 6)),
-              "Level 7 Portals":Boolean((1 <= 7) && (8 >= 7)),
-              "Level 8 Portals":Boolean(8 === 8),
-              "DEBUG Data Tiles":false,
-              "Artifacts":true,
-              "Ornaments":true
-            });
-            var script = document.createElement('script');
-            script.type='text/javascript';
-            script.src='https://secure.jonatkins.com/iitc/release/total-conversion-build.user.js';
-            document.head.insertBefore(script, document.head.lastChild);
-        });
-        loadIitcPlugin('http://iitc.jonatkins.com/release/plugins/canvas-render.user.js');
-        var plugins = JSON.parse(fs.read(plugins_file));
-        for(var i in plugins){
-            var plugin = plugins[i];
-            if(plugin.match('^[a-zA-Z]+://')){
-                loadIitcPlugin(plugin);
-            }else{
-               loadLocalIitcPlugin(plugin);
-            }
-        }
+    	setupIITC()
         setTimeout(function() {
-            if (search != "nix") {
-                page.evaluate(function(search) {
-                    if (document.querySelector('#search')){
-                      window.setTimeout(function() {
-                        document.getElementById("search").value=search;
-                        var e = jQuery.Event("keypress");
-                        e.which = 13;
-                        e.keyCode = 13;
-                        $("#search").trigger(e);
-                      }, 2000);
-                      var checkExist = setInterval(function() {
-                        if ($('.searchquery').length > 0) {
-                            window.setTimeout(function() {$('.searchquery > :nth-child(2)').children()[0].click();}, 1000);
-                            clearInterval(checkExist);
-                        }
-                      }, 100);             
-                    }
-                }, search);
-            }
+          if (search != "nix") {searchfunc(search);}
             waitFor({
-                timeout: 120000,
+                timeout: 240000,
                 check: function () {
                     return page.evaluate(function() {
                         if (document.querySelector('.map').textContent.indexOf('done') != -1) {
                             return true;
                         }else{
+                            console.log('generateFakeOutput')
                             return false;
                         }
                     });
                 },
                 success: function () {
-                    hideDebris();
-                    prepare('1920', '1080');
-                    main();
+                  var startTime = new Date().getTime();
+                  var interval = setInterval(function(){
+                    if(new Date().getTime() - startTime > 5000){
+                      hideDebris();
+                      prepare('1280', '720');
+                      main();
+                      clearInterval(interval);
+                      return;
+                    }
+                    console.log('generateFakeOutput')
+                  }, 1000);
                 },
                 error: function () {
-                    hideDebris();
-                    prepare('1920', '1080');
-                    main();
+                  var startTime = new Date().getTime();
+                  var interval = setInterval(function(){
+                    if(new Date().getTime() - startTime > 5000){
+                      hideDebris();
+                      prepare('1280', '720');
+                      main();
+                      clearInterval(interval);
+                      return;
+                    }
+                    console.log('generateFakeOutput')
+                  }, 1000);
                 }
             });
-        }, "5000");
-    }, "5000");
+        }, "1000");
+    }, "1000");
   });
 }
 
+function searchfunc(search){
+  page.evaluate(function(search) {
+    if (document.querySelector('#search')){
+        window.addHook('search', function(query) {
+          var checkExist = setInterval(function() {
+            if (query.results.length > 0) {
+              console.warn(query.results)
+              map.fitBounds(query.results[0].bounds, {maxZoom: 17})
+              clearInterval(checkExist);
+            }
+          }, 100);
+        });
+      setTimeout(function() {
+        window.search.doSearch(search, true)
+      }, 2000);
+    }
+  }, search);
+}
+
+function setupIITC(){
+    loadIitcPlugin('https://static.iitc.me/build/release/plugins/canvas-render.user.js');
+    page.evaluate(function() {
+        localStorage['ingress.intelmap.layergroupdisplayed'] = JSON.stringify({
+          "Unclaimed Portals": true,
+          "Level 1 Portals": true,
+          "Level 2 Portals": true,
+          "Level 3 Portals": true,
+          "Level 4 Portals": true,
+          "Level 5 Portals": true,
+          "Level 6 Portals": true,
+          "Level 7 Portals": true,
+          "Level 8 Portals": true,
+		      "Fields": true,
+		      "Links": true,
+		      "Resistance": true,
+		      "Enlightened": true,
+          "DEBUG Data Tiles":false,
+          "Artifacts":true,
+          "Ornaments":true
+        });
+        var script = document.createElement('script');
+        script.type='text/javascript';
+        script.src='https://static.iitc.me/build/test/total-conversion-build.user.js';
+        document.head.insertBefore(script, document.head.lastChild);
+    	localStorage['iitc-base-map'] = 'Google Roads';
+    });
+    var plugins = JSON.parse(fs.read(plugins_file));
+    for(var i in plugins){
+        var plugin = plugins[i];
+        if(plugin.match('^[a-zA-Z]+://')){
+            loadIitcPlugin(plugin);
+        }else{
+           loadLocalIitcPlugin(plugin);
+        }
+    }
+}
+
 function s(file) {
+  console.log('SCREENSHOT')
   page.render(file);
-  phantom.exit(0);
+  var startTime = new Date().getTime();
+  var startTime = new Date().getTime();
+  var interval = setInterval(function(){
+    if(new Date().getTime() - startTime > 5000){
+      clearInterval(interval);
+      phantom.exit(0);
+      return;
+    }
+    console.log('doSomeOutput')
+  }, 1000);
 }
 
 function hideDebris() {
@@ -170,14 +407,14 @@ function hideDebris() {
       if (document.querySelector('#sidebartoggle'))             {document.querySelector('#sidebartoggle').style.display = 'none';}
       if (document.querySelector('#scrollwrapper'))             {document.querySelector('#scrollwrapper').style.display = 'none';}
       if (document.querySelector('.leaflet-control-container')) {document.querySelector('.leaflet-control-container').style.display = 'none';}
+      if (document.querySelector('#portal_highlight_select')) {document.querySelector('#portal_highlight_select').style.display = 'none';}
     });
-  }, 2000);
+  }, 200);
 }
 
 function prepare(widthz, heightz) {
-        window.setTimeout(function() {
-          page.evaluate(function(w, h) {
-            $("span:contains(' Google Roads')").prev().click();
+    window.setTimeout(function() {
+        page.evaluate(function(w, h) {
             var water = document.createElement('p');
             water.id='viewport-ice';
             water.style.position = 'absolute';
@@ -188,10 +425,10 @@ function prepare(widthz, heightz) {
             water.style.width = w + 'px';
             water.style.height = h + 'px';
             document.querySelectorAll('body')[0].appendChild(water);
-          }, widthz, heightz);
-          var selector = "#viewport-ice";
-          setElementBounds(selector);
-        }, 4000);
+        }, widthz, heightz);
+        var selector = "#viewport-ice";
+        setElementBounds(selector);
+    }, 500);
 }
 
 
@@ -241,10 +478,10 @@ function getDateTime(format) {
 }
 
 function addTimestamp(time) {
-  page.evaluate(function(dateTime) {
+  page.evaluate(function(dateTime, search) {
     var water = document.createElement('p');
     water.id='watermark-ice';
-    water.innerHTML = dateTime;
+    water.innerHTML = dateTime + ' - ' + search;
     water.style.position = 'absolute';
     water.style.color = '#3A539B';
     water.style.top = '0';
@@ -255,9 +492,9 @@ function addTimestamp(time) {
     water.style.fontSize = '40px';
     water.style.opacity = '0.8';
     water.style.fontFamily = 'monospace';
-    water.style.textShadow = 'rgb(3, 3, 3) 7px 5px 9px';
+    water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
     document.querySelectorAll('body')[0].appendChild(water);
-  }, time);
+  }, time, search);
 }
 
 /**
@@ -274,5 +511,5 @@ function main() {
     addTimestamp(getDateTime(0));
     file = filepath;
     s(file);
-  }, 3000);
+  }, 400);
 }
