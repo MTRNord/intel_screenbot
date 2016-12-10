@@ -503,7 +503,7 @@ function addTimestamp(time) {
       var water = document.createElement('p');
       water.id='watermark-ice';
       water.style.zIndex = '4404';
-      water.innerHTML = dateTime;
+      water.innerHTML = dateTime + ' - ' + search;
       water.style.position = 'absolute';
       water.style.color = 'orange';
       water.style.top = '0';
