@@ -17,26 +17,6 @@ To install the plugin you need to:
 4. Run `pip3 install -r requirements.txt`
 5. Follow Configuration.
 
-## Configuration with Cookies
-
-*Note Cookies do have to be changed on daily base*
-For using the Intel Screenbot you need to add the following to the config.json:
-
-```
- "intel_screenbot": {
-   "SACSID": "YOUR SACSID",
-   "CSRF": "YOUR CSRF",
-   "plugin_dirs": [
-     "https://api.github.com/repos/iitc-project/iitc-project.github.io/git/trees/master?recursive=1"
-   ]
- }
-```  
-
-According to the official INSTALL Documention of the hangoutbot you will find the config.json in `/<username>/.local/share/hangupsbot/`
-(NOTE! add an comma behind the last element of the config.json and add it befor the outer element closes)
-
-Also you need to add `intel_screenbot` to the plugins.
-
 ## Configuration with Email Password
 
 **IMPORTANT: DO NOT USE YOUR MAIN ACCOUNT! I AM NOT RESPONSIBLE IF YOU ACCOUNT GETS BANNED! USE AT YOUR OWN RISK**
@@ -101,13 +81,15 @@ You should look at the Documentation of [ingress-ice](https://github.com/nibogd/
 
 ## User Command
 
-`/bot intel [<url> or <searchTerm>]`
+`/bot intel [[url] or [searchTerm]] [z=zoomlevel]`
 * Provide an arbitrary `<url>` to take a screenshot
 * If no `<url>` is supplied, use the default screenshot URL (or reply with an error if no URL is set)
+* `z=` lets you change the zoomlevel of the map
 
-`/bot iitc [<url> or <searchTerm>]`
+`/bot iitc [[url] or [searchTerm]] [z=zoomlevel]`
 * Provide an arbitrary `<url>` to take a screenshot
 * If no `<url>` is supplied, use the default screenshot URL (or reply with an error if no URL is set)
+* `z=` lets you change the zoomlevel of the map
 
 ## PhantomJS Installation
 
