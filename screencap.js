@@ -499,7 +499,7 @@ function addTimestamp(time) {
       document.querySelectorAll('body')[0].appendChild(water);
     }, time, search);
   }else {
-    page.evaluate(function(dateTime) {
+    page.evaluate(function(dateTime, search) {
       var water = document.createElement('p');
       water.id='watermark-ice';
       water.style.zIndex = '4404';
@@ -515,7 +515,7 @@ function addTimestamp(time) {
       water.style.fontFamily = 'monospace';
       water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
       document.querySelectorAll('body')[0].appendChild(water);
-    }, time);
+    }, time, search);
   }
 }
 
