@@ -86,31 +86,12 @@ def _get_lines(shell_command):
     return p.returncode, output, True
 
 @asyncio.coroutine
-def _screencap(maptype, url, filepath, filename, SACSID, CSRF, plugins, search, bot, event):
+def _screencap(url, args_filepath, filepath, filename, bot, event):
     loop = asyncio.get_event_loop()
-    logger.info("screencapping {} and saving as {}".format(url, filepath))
-    if plugins is '':
-        if search == False:
-            command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '"'
-            task = _get_lines(command)
-            task = asyncio.wait_for(task, 420.0)
-            exitcode, output, status = yield from task
-        else:
-            command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '" "' + search + '"'
-            task = _get_lines(command)
-            task = asyncio.wait_for(task, 420.0)
-            exitcode, output, status = yield from task
-    else:
-        if search == False:
-            command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '" "' + plugins + '"'
-            task = _get_lines(command)
-            task = asyncio.wait_for(task, 420.0)
-            exitcode, output, status = yield from task
-        else:
-            command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap_' + maptype + '.js "' + SACSID + '" "' + CSRF + '" "' + url + '" "' + filepath + '" "' + search + '" "' + plugins + '"'
-            task = _get_lines(command)
-            task = asyncio.wait_for(task, 420.0)
-            exitcode, output, status = yield from task
+    command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap.js "' + args_filepath + '"'
+    task = _get_lines(command)
+    task = asyncio.wait_for(task, 420.0)
+    exitcode, output, status = yield from task
 
     # read the resulting file into a byte array
     # yield from asyncio.sleep(10)
@@ -149,6 +130,8 @@ def intel(bot, event, *args):
     """get a screenshot of a search term or intel URL or the default intel URL of the hangout.
     """
 
+    arguments = {}
+
     if args:
         if len(args) > 1:
             url = ' '.join(str(i) for i in args)
@@ -159,22 +142,17 @@ def intel(bot, event, *args):
     else:
         url = bot.conversation_memory_get(event.conv_id, 'IntelURL')
 
-    if bot.config.exists(["intel_screenbot", "SACSID"]):
-        if bot.config.exists(["intel_screenbot", "CSRF"]):
-            SACSID = bot.config.get_by_path(["intel_screenbot", "SACSID"])
-            CSRF = bot.config.get_by_path(["intel_screenbot", "CSRF"])
-        else:
-            html = "<i><b>{}</b> No Intel password has been added to config. Unable to authenticate".format(event.user.full_name)
-            yield from bot.coro_send_message(event.conv, html)
-    elif bot.config.exists(["intel_screenbot", "email"]):
+    if bot.config.exists(["intel_screenbot", "email"]):
         if bot.config.exists(["intel_screenbot", "password"]):
-            SACSID = bot.config.get_by_path(["intel_screenbot", "email"])
-            CSRF = bot.config.get_by_path(["intel_screenbot", "password"])
+            email = bot.config.get_by_path(["intel_screenbot", "email"])
+            password = bot.config.get_by_path(["intel_screenbot", "password"])
+            arguments['email'] = email
+            arguments['password'] = password
         else:
             html = "<i><b>{}</b> No Intel password has been added to config. Unable to authenticate".format(event.user.full_name)
             yield from bot.coro_send_message(event.conv, html)
     else:
-        html = "<i><b>{}</b> No Intel SACSID Cookie or Email/password has been added to config. Unable to authenticate".format(event.user.full_name)
+        html = "<i><b>{}</b> No Intel Email/password has been added to config. Unable to authenticate".format(event.user.full_name)
         yield from bot.coro_send_message(event.conv, html)
 
     if url is None:
@@ -182,29 +160,53 @@ def intel(bot, event, *args):
         yield from bot.coro_send_message(event.conv, html)
 
     else:
-        if re.match(r'^[a-zA-Z]+://', url):
-            search = False
-            ZoomSearch = re.finditer(r"(?:&z=).*", url)
-            for matchNum, zoomlevel_raw in enumerate(ZoomSearch):
-                matchNum = matchNum + 1
-            zoomlevel_clean = zoomlevel_raw.group()
-            zoomlevel = zoomlevel_clean[3:][:2]
-            if zoomlevel.isdigit():
-                yield from bot.coro_send_message(event.conv_id, "<i>intel map at zoom level "+ zoomlevel + " requested, please wait...</i>")
+        if re.match(r'(http(s)?:\/\/)', url):
+            search = 'nix'
+            zoomParameter = re.search(r"(?:&z=)", url, re.IGNORECASE)
+            if zoomParameter:
+                ZoomSearch = re.finditer(r"(?:&z=).*", url, flags=re.I)
+                for matchNum, zoomlevel_raw in enumerate(ZoomSearch):
+                    matchNum = matchNum + 1
+                zoomlevel_clean = zoomlevel_raw.group()
+                zoomlevel = zoomlevel_clean[3:][:2]
+                if zoomlevel.isdigit():
+                    yield from bot.coro_send_message(event.conv_id, "<i>intel map at zoom level "+ zoomlevel + " requested, please wait...</i>")
             else:
                 yield from bot.coro_send_message(event.conv_id, "<i>intel map at last zoom level requested, please wait...</i>")
         else:
             search = url
-            logger.info(search);
+            zoomParameter = re.search(r"(?<=z=)", url, re.IGNORECASE)
+            if zoomParameter:
+                ZoomSearch = re.finditer(r"(?<=z=)[^\s]+", url, flags=re.I)
+                for matchNum, zoomlevel_raw in enumerate(ZoomSearch):
+                    matchNum = matchNum + 1
+                zoomlevel = zoomlevel_raw.group()
+                search = search.replace("z={}".format(zoomlevel),"")
+                if zoomlevel.isdigit():
+                    yield from bot.coro_send_message(event.conv_id, "<i>intel map is searching " + search + " and screenshooting at zoom level "+ zoomlevel + " as requested, please wait...</i>")
+                    arguments['zoomlevel'] = str(zoomlevel)
+            else:
+                yield from bot.coro_send_message(event.conv_id, "<i>intel map is searching " + search + " and screenshooting as requested, please wait...</i>")
             url = 'https://www.ingress.com/intel'
-            yield from bot.coro_send_message(event.conv_id, "<i>intel map is searching " + search + " and screenshooting as requested, please wait...</i>")
 
         filepath = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
         filename = filepath.split('/', filepath.count('/'))[-1]
+        args_filepath = tempfile.NamedTemporaryFile(prefix="args_{}".format(event.conv_id), suffix=".json", delete=False).name
         logger.debug("temporary screenshot file: {}".format(filepath))
+        logger.debug("temporary args file: {}".format(args_filepath))
+
+        arguments['search'] = search
+        arguments['url'] = url
+        arguments['filepath'] = filepath
+        arguments['maptype'] = "intel"
+
+        with open(args_filepath, 'w') as out:
+            out.write(json.dumps(arguments))
+
+
         try:
             loop = asyncio.get_event_loop()
-            image_data = yield from _screencap("intel", url, filepath, filename, SACSID, CSRF, "", search, bot, event)
+            image_data = yield from _screencap(url, args_filepath, filepath, filename, bot, event)
         except Exception as e:
             yield from bot.coro_send_message(event.conv_id, "<i>error getting screenshot</i>")
             logger.exception("screencap failed".format(url))
@@ -215,6 +217,8 @@ def iitc(bot, event, *args):
     """get a screenshot of a search term or intel URL or the default intel URL of the hangout.
     """
 
+    arguments = {}
+
     if args:
         if len(args) > 1:
             url = ' '.join(str(i) for i in args)
@@ -225,50 +229,58 @@ def iitc(bot, event, *args):
     else:
         url = bot.conversation_memory_get(event.conv_id, 'IntelURL')
 
-    if bot.config.exists(["intel_screenbot", "SACSID"]):
-        if bot.config.exists(["intel_screenbot", "CSRF"]):
-            SACSID = bot.config.get_by_path(["intel_screenbot", "SACSID"])
-            CSRF = bot.config.get_by_path(["intel_screenbot", "CSRF"])
-        else:
-            html = "<i><b>{}</b> No Intel password has been added to config. Unable to authenticate".format(event.user.full_name)
-            yield from bot.coro_send_message(event.conv, html)
-    elif bot.config.exists(["intel_screenbot", "email"]):
+    if bot.config.exists(["intel_screenbot", "email"]):
         if bot.config.exists(["intel_screenbot", "password"]):
-            SACSID = bot.config.get_by_path(["intel_screenbot", "email"])
-            CSRF = bot.config.get_by_path(["intel_screenbot", "password"])
+            email = bot.config.get_by_path(["intel_screenbot", "email"])
+            password = bot.config.get_by_path(["intel_screenbot", "password"])
+            arguments['email'] = email
+            arguments['password'] = password
         else:
             html = "<i><b>{}</b> No Intel password has been added to config. Unable to authenticate".format(event.user.full_name)
             yield from bot.coro_send_message(event.conv, html)
     else:
-        html = "<i><b>{}</b> No Intel SACSID Cookie or Email/password has been added to config. Unable to authenticate".format(event.user.full_name)
+        html = "<i><b>{}</b> No Intel Email/password has been added to config. Unable to authenticate".format(event.user.full_name)
         yield from bot.coro_send_message(event.conv, html)
-        
+
     if url is None:
         html = "<i><b>{}</b> No Intel URL has been set for screenshots.".format(event.user.full_name)
         yield from bot.coro_send_message(event.conv, html)
 
     else:
-        if re.match(r'^[a-zA-Z]+://', url):
-            search = False
-            ZoomSearch = re.finditer(r"(?:&z=).*", url)
-            for matchNum, zoomlevel_raw in enumerate(ZoomSearch):
-                matchNum = matchNum + 1
-            zoomlevel_clean = zoomlevel_raw.group()
-            zoomlevel = zoomlevel_clean[3:][:2]
-            if zoomlevel.isdigit():
-                yield from bot.coro_send_message(event.conv_id, "<i>intel map at zoom level "+ zoomlevel + " requested, please wait...</i>")
+        if re.match(r'(http(s)?:\/\/)', url):
+            search = 'nix'
+            zoomParameter = re.search(r"(?:&z=)", test_str, re.IGNORECASE)
+            if zoomParameter:
+                ZoomSearch = re.finditer(r"(?:&z=).*", url, flags=re.I)
+                for matchNum, zoomlevel_raw in enumerate(ZoomSearch):
+                    matchNum = matchNum + 1
+                zoomlevel_clean = zoomlevel_raw.group()
+                zoomlevel = zoomlevel_clean[3:][:2]
+                if zoomlevel.isdigit():
+                    yield from bot.coro_send_message(event.conv_id, "<i>intel map at zoom level "+ zoomlevel + " requested, please wait...</i>")
             else:
                 yield from bot.coro_send_message(event.conv_id, "<i>intel map at last zoom level requested, please wait...</i>")
         else:
             search = url
-            logger.info(search);
+            zoomParameter = re.search(r"(?<=z=)", url, re.IGNORECASE)
+            if zoomParameter:
+                ZoomSearch = re.finditer(r"(?<=z=)[^\s]+", url, flags=re.I)
+                for matchNum, zoomlevel_raw in enumerate(ZoomSearch):
+                    matchNum = matchNum + 1
+                zoomlevel = zoomlevel_raw.group()
+                search = search.replace("z={}".format(zoomlevel),"")
+                if zoomlevel.isdigit():
+                    yield from bot.coro_send_message(event.conv_id, "<i>intel map is searching " + search + " and screenshooting at zoom level "+ zoomlevel + " as requested, please wait...</i>")
+                    arguments['zoomlevel'] = str(zoomlevel)
+            else:
+                yield from bot.coro_send_message(event.conv_id, "<i>intel map is searching " + search + " and screenshooting as requested, please wait...</i>")
             url = 'https://www.ingress.com/intel'
-            yield from bot.coro_send_message(event.conv_id, "<i>intel map is searching " + search + " and screenshooting as requested, please wait...</i>")
 
         filepath = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
         filename = filepath.split('/', filepath.count('/'))[-1]
-        plugins_filepath = tempfile.NamedTemporaryFile(prefix=event.conv_id, suffix=".json", delete=False).name
+        args_filepath = tempfile.NamedTemporaryFile(prefix="args_{}".format(event.conv_id), suffix=".json", delete=False).name
         logger.debug("temporary screenshot file: {}".format(filepath))
+        logger.debug("temporary args file: {}".format(args_filepath))
         if bot.conversation_memory_get(event.conv_id, 'iitc_plugins'):
             plugins = []
             plugin_names = bot.conversation_memory_get(event.conv_id, 'iitc_plugins').split(", ")
@@ -280,12 +292,18 @@ def iitc(bot, event, *args):
         else:
              plugins = ''
 
-        with open(plugins_filepath, 'w') as out:
-            out.write(json.dumps(plugins))
+        arguments['plugins'] = plugins
+        arguments['search'] = search
+        arguments['url'] = url
+        arguments['filepath'] = filepath
+        arguments['maptype'] = "iitc"
+
+        with open(args_filepath, 'w') as out:
+            out.write(json.dumps(arguments))
 
         try:
             loop = asyncio.get_event_loop()
-            image_data = yield from _screencap("iitc", url, filepath, filename, SACSID, CSRF, plugins_filepath, search, bot, event)
+            image_data = yield from _screencap(url, args_filepath, filepath, filename, bot, event)
         except Exception as e:
             yield from bot.coro_send_message(event.conv_id, "<i>error getting screenshot</i>")
             logger.exception("screencap failed".format(url))

@@ -4,52 +4,39 @@ var page = require('webpage').create();
 var fs = require('fs');
 var cookiespath = '.iced_cookies';
 var config = '';
+var loginTimeout = '5000';
 if (args.length === 1) {
     console.log('Try to pass some args when invoking this script!');
 } else {
-  if (args.length === 6){
-      var SACSID  = args[1];
-      var CSRF  = args[2];
-      var IntelURL  = args[3];
-      var filepath  = args[4];
-      var plugins_file  = args[5];
-      var search  = 'nix';
-      var loginTimeout = '5000';
-  }else{
-    if (args.length === 7){
-      var SACSID  = args[1];
-      var CSRF  = args[2];
-      var IntelURL  = args[3];
-      var filepath  = args[4];
-      var search  = args[5];
-      var plugins_file  = args[6];
-      var loginTimeout = '5000';
-    }
+  var arguments_file  = args[1];
+  var arguments = JSON.parse(fs.read(arguments_file));
+  if (arguments.hasOwnProperty('plugins')) {
+    var plugins = arguments["plugins"]
   }
+  if (arguments.hasOwnProperty('zoomlevel')) {
+    var zoomlevel = arguments["zoomlevel"]
+  }
+  var maptype = arguments["maptype"]
+  var search = arguments["search"]
+  var url = arguments["url"]
+  var filepath = arguments['filepath']
+  var user = arguments['email']
+  var pass = arguments['password']
 }
-
-function validateEmail(email) {
-    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(email);
-}
-
-function quit(err) {
+function quit() {
   phantom.exit(0);
 }
-if (validateEmail(SACSID)) {
-  loadCookies(function() {
-    if (config.SACSID == undefined || config.SACSID == '') {
-      firePlainLogin(SACSID, CSRF);
-    } else {
-      addCookies(config.SACSID, config.CSRF);
-      console.log('Using cookies to log in');
-      afterCookieLogin();
-    }
-  });
-}else {
-  addCookies(SACSID, CSRF);
-  afterCookieLogin(IntelURL, search);
-}
+
+loadCookies(function() {
+  if (config.SACSID == undefined || config.SACSID == '') {
+    firePlainLogin(user, pass, url);
+  } else {
+    addCookies(config.SACSID, config.CSRF);
+    console.log('Using cookies to log in');
+    afterCookieLogin(url, search);
+  }
+});
+
 
 function loadCookies(callback) {
   if(fs.exists(cookiespath)) {
@@ -85,22 +72,21 @@ function storeCookies() {
   }
 }
 
-function firePlainLogin(SACSID, CSRF) {
+function firePlainLogin(user, pass, url) {
   page.open('https://www.ingress.com/intel', function (status) {
     page.evaluate(function () {
       localStorage.clear()
     });
-    if (status !== 'success') {quit('unable to connect to remote server')}
+    if (status !== 'success') {console.log("Login ERROR"); quit();}
     var link = 'https://www.google.com/accounts/ServiceLogin?service=ah&passive=true&continue=https://appengine.google.com/_ah/conflogin%3Fcontinue%3Dhttps://www.ingress.com/intel&ltmpl='
     page.open(link, function () {
-      login(SACSID, CSRF);
+      login(user, pass, url);
     });
   });
 }
 
-function login(l, p) {
+function login(l, p, url) {
     if (document.querySelector('#timeoutError')){
-        login(l, p)
         firePlainLogin(l, p)
     }
     waitFor({
@@ -136,7 +122,8 @@ function login(l, p) {
                 }
                 window.setTimeout(function () {
                     if (page.url.substring(0,40) === 'https://accounts.google.com/ServiceLogin') {
-                        quit('login failed: wrong email and/or password');
+                        console.log("login failed: wrong email and/or password")
+                        quit()
                     }
 
                     if (page.url.substring(0,40) === 'https://appengine.google.com/_ah/loginfo') {
@@ -149,39 +136,49 @@ function login(l, p) {
                     if (page.url.substring(0,44) === 'https://accounts.google.com/signin/challenge') {
                         twostep = system.stdin.readLine();
                     }
-                    window.setTimeout(afterPlainLogin(IntelURL, search), loginTimeout);
+                    window.setTimeout(afterPlainLogin(url, search), loginTimeout);
                 }, loginTimeout)
             }, loginTimeout / 10);
         },
         error: function () {
+            console.log("error waitingFor loginform")
             quit();
         }
     });
 }
 
-function afterPlainLogin(IntelURL, search) {
+function afterPlainLogin(url, search) {
   page.viewportSize = { width: '1280', height: '720' };
-  page.open(IntelURL, function(status) {
-    if (status !== 'success') {quit('unable to connect to remote server')}
+  page.open(url, function(status) {
+    console.log(url)
+    if (status !== 'success') {console.log('unable to connect to remote server afterPlainLogin'); quit()}
     if (!isSignedIn()) {
       console.log("not logged in")
       quit();
     }
     setTimeout(function() {
-		setupIITC()
+      storeCookies();
+		  setupIITC()
         setTimeout(function() {
-          setTimeout(function() {if (search != "nix") {searchfunc(search);}}, 1000);
+          setTimeout(function() {
+            if (search != 'nix') {
+              searchfunc(search);
+            }
+          }, 1000);
             waitFor({
                 timeout: 240000,
                 check: function () {
-                    return page.evaluate(function() {
-                        if (document.querySelector('.map').textContent.indexOf('done') != -1) {
-                            return true;
-                        }else{
-                            console.log('generateFakeOutput')
-                            return false;
-                        }
-                    });
+                  return page.evaluate(function(zoomlevel) {
+                    if (typeof zoomlevel === 'undefined' || zoomlevel === null) {
+                      window.map.setZoom(zoomlevel,animate=false)
+                    }
+                    if (document.querySelector('.map').textContent.indexOf('done') != -1) {
+                        return true;
+                    }else{
+                        console.log('generateFakeOutput')
+                        return false;
+                    }
+                  }, zoomlevel);
                 },
                 success: function () {
                   var startTime = new Date().getTime();
@@ -260,38 +257,33 @@ function loadLocalIitcPlugin(src) {
     page.injectJs(src)
 }
 
-function afterCookieLogin(IntelURL, search) {
+function afterCookieLogin(url, search) {
   page.viewportSize = { width: '1280', height: '720' };
-  page.open(IntelURL, function(status) {
+  page.open(url, function(status) {
     if (status !== 'success') {quit('unable to connect to remote server')}
     if(!isSignedIn()) {
       if(fs.exists(cookiespath)) {
         fs.remove(cookiespath);
       }
-      if(validateEmail(SACSID)) {
-        page.deleteCookie('SACSID');
-        page.deleteCookie('csrftoken');
-        firePlainLogin(SACSID, CSRF);
-        return;
-      } else {
-        quit('Cookies are obsolete. Update your config file.');
-      }
+      quit('Cookies are obsolete. Update your config file.');
     }
     setTimeout(function() {
     	setupIITC()
         setTimeout(function() {
-          if (search != "nix") {searchfunc(search);}
+          if (search != "nix") {
+            searchfunc(search);
+          }
             waitFor({
                 timeout: 240000,
                 check: function () {
-                    return page.evaluate(function() {
-                        if (document.querySelector('.map').textContent.indexOf('done') != -1) {
-                            return true;
-                        }else{
-                            console.log('generateFakeOutput')
-                            return false;
-                        }
-                    });
+                  return page.evaluate(function() {
+                    if (document.querySelector('.map').textContent.indexOf('done') != -1) {
+                        return true;
+                    }else{
+                        console.log('generateFakeOutput')
+                        return false;
+                    }
+                  });
                 },
                 success: function () {
                   var startTime = new Date().getTime();
@@ -326,7 +318,7 @@ function afterCookieLogin(IntelURL, search) {
 }
 
 function searchfunc(search){
-  page.evaluate(function(search) {
+  page.evaluate(function(search, zoomlevel) {
     if (document.querySelector('#search')){
         window.addHook('search', function(query) {
           var checkExist = setInterval(function() {
@@ -335,18 +327,22 @@ function searchfunc(search){
               map.fitBounds(query.results[0].bounds, {maxZoom: 17})
               clearInterval(checkExist);
             }
+            if (typeof zoomlevel !== 'undefined' || zoomlevel !== null) {
+              console.log(zoomlevel)
+              window.map.setZoom(zoomlevel,animate=false)
+            }
           }, 100);
         });
       setTimeout(function() {
         window.search.doSearch(search, true)
       }, 2000);
     }
-  }, search);
+  }, search, zoomlevel);
 }
 
 function setupIITC(){
     loadIitcPlugin('https://static.iitc.me/build/release/plugins/canvas-render.user.js');
-    page.evaluate(function() {
+    page.evaluate(function(maptype) {
         localStorage['ingress.intelmap.layergroupdisplayed'] = JSON.stringify({
           "Unclaimed Portals": true,
           "Level 1 Portals": true,
@@ -369,16 +365,22 @@ function setupIITC(){
         script.type='text/javascript';
         script.src='https://static.iitc.me/build/test/total-conversion-build.user.js';
         document.head.insertBefore(script, document.head.lastChild);
-    	localStorage['iitc-base-map'] = 'Google Roads';
-    });
-    var plugins = JSON.parse(fs.read(plugins_file));
-    for(var i in plugins){
-        var plugin = plugins[i];
-        if(plugin.match('^[a-zA-Z]+://')){
-            loadIitcPlugin(plugin);
-        }else{
-           loadLocalIitcPlugin(plugin);
+        if (maptype == "intel") {
+          localStorage['iitc-base-map'] = 'Google Default Ingress Map';
+        }else {
+          localStorage['iitc-base-map'] = 'Google Roads';
         }
+    }, maptype);
+    if (maptype != "intel") {
+      console.log(plugins);
+      for(var i in plugins){
+          var plugin = plugins[i];
+          if(plugin.match('(http(s)?:\/\/)')){
+              loadIitcPlugin(plugin);
+          }else{
+             loadLocalIitcPlugin(plugin);
+          }
+      }
     }
 }
 
@@ -390,7 +392,7 @@ function s(file) {
   var interval = setInterval(function(){
     if(new Date().getTime() - startTime > 5000){
       clearInterval(interval);
-      phantom.exit(0);
+      quit();
       return;
     }
     console.log('doSomeOutput')
@@ -478,23 +480,43 @@ function getDateTime(format) {
 }
 
 function addTimestamp(time) {
-  page.evaluate(function(dateTime, search) {
-    var water = document.createElement('p');
-    water.id='watermark-ice';
-    water.innerHTML = dateTime + ' - ' + search;
-    water.style.position = 'absolute';
-    water.style.color = '#3A539B';
-    water.style.top = '0';
-    water.style.zIndex = '4404';
-    water.style.marginTop = '0';
-    water.style.paddingTop = '0';
-    water.style.left = '0';
-    water.style.fontSize = '40px';
-    water.style.opacity = '0.8';
-    water.style.fontFamily = 'monospace';
-    water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
-    document.querySelectorAll('body')[0].appendChild(water);
-  }, time, search);
+  if (maptype == "iitc") {
+    page.evaluate(function(dateTime, search) {
+      var water = document.createElement('p');
+      water.id='watermark-ice';
+      water.innerHTML = dateTime + ' - ' + search;
+      water.style.position = 'absolute';
+      water.style.color = '#3A539B';
+      water.style.top = '0';
+      water.style.zIndex = '4404';
+      water.style.marginTop = '0';
+      water.style.paddingTop = '0';
+      water.style.left = '0';
+      water.style.fontSize = '40px';
+      water.style.opacity = '0.8';
+      water.style.fontFamily = 'monospace';
+      water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
+      document.querySelectorAll('body')[0].appendChild(water);
+    }, time, search);
+  }else {
+    page.evaluate(function(dateTime, search) {
+      var water = document.createElement('p');
+      water.id='watermark-ice';
+      water.style.zIndex = '4404';
+      water.innerHTML = dateTime + ' - ' + search;
+      water.style.position = 'absolute';
+      water.style.color = 'orange';
+      water.style.top = '0';
+      water.style.left = '0';
+      water.style.fontSize = '40px';
+      water.style.opacity = '0.8';
+      water.style.marginTop = '0';
+      water.style.paddingTop = '0';
+      water.style.fontFamily = 'monospace';
+      water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
+      document.querySelectorAll('body')[0].appendChild(water);
+    }, time, search);
+  }
 }
 
 /**
