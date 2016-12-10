@@ -52,14 +52,11 @@ Also you need to add `intel_screenbot` to the plugins.
 
 1. add `https://api.github.com/repos/:REPO_USER/:REPO_NAME/git/trees/master?recursive=1`
 
+*Note: repos are currently locked to master branch*
+
 ## How to add local files to plugins_dir
 
 1. just add the absolute path to `plugins_dir` (relative paths are not tested)
-
-*Note: repos are currently locked to master branch*
-
-## How to get SACSID and CSRF
-You should look at the Documentation of [ingress-ice](https://github.com/nibogd/ingress-ice/wiki/Cookies-Authentication)
 
 ## Admin Commands
 
