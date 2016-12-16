@@ -249,7 +249,7 @@ def iitc(bot, event, *args):
     else:
         if re.match(r'(http(s)?:\/\/)', url):
             search = 'nix'
-            zoomParameter = re.search(r"(?:&z=)", test_str, re.IGNORECASE)
+            zoomParameter = re.search(r"(?:&z=)", url, re.IGNORECASE)
             if zoomParameter:
                 ZoomSearch = re.finditer(r"(?:&z=).*", url, flags=re.I)
                 for matchNum, zoomlevel_raw in enumerate(ZoomSearch):
