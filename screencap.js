@@ -2,7 +2,7 @@ var system = require('system');
 var args = system.args;
 var page = require('webpage').create();
 var fs = require('fs');
-var cookiespath = '.iced_cookies';
+var cookiespath = '/tmp/.iced_cookies';
 var config = '';
 var loginTimeout = '5000';
 if (args.length === 1) {
