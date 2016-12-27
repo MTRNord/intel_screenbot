@@ -82,11 +82,12 @@ def _get_iitc_plugins(bot):
 
 def _get_lines(shell_command):
     p = yield from asyncio.create_subprocess_shell(shell_command)
-    output = yield from p.wait()
+    output = yield from asyncio.wait_for(p.wait(), 240.0)
     return p.returncode, output, True
 
 @asyncio.coroutine
 def _screencap(url, args_filepath, filepath, filename, bot, event):
+    os.chmod(filepath, 0o666)
     loop = asyncio.get_event_loop()
     command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap.js "' + args_filepath + '"'
     task = _get_lines(command)
