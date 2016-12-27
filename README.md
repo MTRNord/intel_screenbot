@@ -60,11 +60,9 @@ Also you need to add `intel_screenbot` to the plugins.
 
 ## Admin Commands
 
-`/bot setintel <url>`
+`/bot setintel [url]`
 * Sets the default Intel URL of a particular hangout.  
-
-`/bot clearintel`  
-* Clears the default screenshot URL of a particular hangout.
+* If no url provided it will be cleared
 
 `/bot show_iitcplugins`  
 * Shows every availible IITC-plugin.
@@ -90,38 +88,11 @@ Also you need to add `intel_screenbot` to the plugins.
 
 ## PhantomJS Installation
 
-*May be outdated*
-
-### Debian-based distros (e.g. Ubuntu 14.04)
-
-`sudo apt-get install phantomjs`
-
-## Building PhantomJS from Source (Advanced)
-
-Note: It is not within the scope of this project to discuss and resolve build problems with
-  external libraries.
-
-**Install dependencies**  
-
-On Debian-based distro (tested on Ubuntu 14.04), run:  
-```
-sudo apt-get install build-essential g++ flex bison gperf ruby perl \
-  libsqlite3-dev libfontconfig1-dev libicu-dev libfreetype6 libssl-dev \
-  libpng-dev libjpeg-dev
-```  
-
-On Fedora-based distro (tested on CentOS 6), run:
-```
-sudo yum -y install gcc gcc-c++ make flex bison gperf ruby \  
-  openssl-devel freetype-devel fontconfig-devel libicu-devel sqlite-devel \  
-  libpng-devel libjpeg-devel
-```  
-
-**Install PhantomJS from source**
+Only tested:
 
 ```
-git clone git://github.com/ariya/phantomjs.git
-cd phantomjs
-git checkout 2.0
-./build.sh
+wget https://cnpmjs.org/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2
+tar xvjf phantomjs-2.1.1-linux-x86_64.tar.bz2
+mv phantomjs-2.1.1-linux-x86_64 /usr/local/share
+ln -sf /usr/local/share/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/local/bin
 ```
