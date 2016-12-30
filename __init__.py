@@ -104,6 +104,8 @@ def _screencap(url, args_filepath, filepath, filename, bot, event):
         try:
             image_id = yield from bot._client.upload_image(image_data, filename=filename)
             yield from bot._client.sendchatmessage(event.conv.id_, None, image_id=image_id)
+            os.unlink(filepath)
+            os.unlink(args_filepath)
         except Exception as e:
             logger.exception("upload failed: {}".format(url))
             logger.exception("exception: {}".format(e))
