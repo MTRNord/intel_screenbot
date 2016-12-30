@@ -413,81 +413,81 @@ function getDateTime(format) {
 
 function addTimestamp(time) {
   if (search == "nix") {
-	if (maptype == "iitc") {
-	    page.evaluate(function(dateTime, search) {
-	      var water = document.createElement('p');
-	      water.id='watermark-ice';
-	      water.innerHTML = dateTime;
-	      water.style.position = 'absolute';
-	      water.style.color = '#3A539B';
-	      water.style.top = '0';
-	      water.style.zIndex = '4404';
-	      water.style.marginTop = '0';
-	      water.style.paddingTop = '0';
-	      water.style.left = '0';
-	      water.style.fontSize = '40px';
-	      water.style.opacity = '0.8';
-	      water.style.fontFamily = 'monospace';
-	      water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
-	      document.querySelectorAll('body')[0].appendChild(water);
-	    }, time, search);
-	  }else {
-	    page.evaluate(function(dateTime, search) {
-	      var water = document.createElement('p');
-	      water.id='watermark-ice';
-	      water.style.zIndex = '4404';
-	      water.innerHTML = dateTime;
-	      water.style.position = 'absolute';
-	      water.style.color = 'orange';
-	      water.style.top = '0';
-	      water.style.left = '0';
-	      water.style.fontSize = '40px';
-	      water.style.opacity = '0.8';
-	      water.style.marginTop = '0';
-	      water.style.paddingTop = '0';
-	      water.style.fontFamily = 'monospace';
-	      water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
-	      document.querySelectorAll('body')[0].appendChild(water);
-	    }, time, search);
-	  }
+    if (maptype == "iitc") {
+      page.evaluate(function(dateTime, search) {
+        var water = document.createElement('p');
+	water.id='watermark-ice';
+	water.innerHTML = dateTime;
+	water.style.position = 'absolute';
+	water.style.color = '#3A539B';
+	water.style.top = '0';
+	water.style.zIndex = '4404';
+	water.style.marginTop = '0';
+	water.style.paddingTop = '0';
+	water.style.left = '0';
+	water.style.fontSize = '30px';
+	water.style.opacity = '0.8';
+	water.style.fontFamily = 'monospace';
+	water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
+	document.querySelectorAll('body')[0].appendChild(water);
+      }, time, search);
+    }else {
+      page.evaluate(function(dateTime, search) {
+        var water = document.createElement('p');
+        water.id='watermark-ice';
+        water.style.zIndex = '4404';
+        water.innerHTML = dateTime;
+        water.style.position = 'absolute';
+        water.style.color = 'orange';
+        water.style.top = '0';
+        water.style.left = '0';
+        water.style.fontSize = '30px';
+        water.style.opacity = '0.8';
+        water.style.marginTop = '0';
+        water.style.paddingTop = '0';
+        water.style.fontFamily = 'monospace';
+        water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
+        document.querySelectorAll('body')[0].appendChild(water);
+      }, time, search);
+    }
   }else{
-	  if (maptype == "iitc") {
-	    page.evaluate(function(dateTime, search) {
-	      var water = document.createElement('p');
-	      water.id='watermark-ice';
-	      water.innerHTML = dateTime + ' - ' + search;
-	      water.style.position = 'absolute';
-	      water.style.color = '#3A539B';
-	      water.style.top = '0';
-	      water.style.zIndex = '4404';
-	      water.style.marginTop = '0';
-	      water.style.paddingTop = '0';
-	      water.style.left = '0';
-	      water.style.fontSize = '40px';
-	      water.style.opacity = '0.8';
-	      water.style.fontFamily = 'monospace';
-	      water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
-	      document.querySelectorAll('body')[0].appendChild(water);
-	    }, time, search);
-	  }else {
-	    page.evaluate(function(dateTime, search) {
-	      var water = document.createElement('p');
-	      water.id='watermark-ice';
-	      water.style.zIndex = '4404';
-	      water.innerHTML = dateTime + ' - ' + search;
-	      water.style.position = 'absolute';
-	      water.style.color = 'orange';
-	      water.style.top = '0';
-	      water.style.left = '0';
-	      water.style.fontSize = '40px';
-	      water.style.opacity = '0.8';
-	      water.style.marginTop = '0';
-	      water.style.paddingTop = '0';
-	      water.style.fontFamily = 'monospace';
-	      water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
-	      document.querySelectorAll('body')[0].appendChild(water);
-	    }, time, search);
-	  }
+    if (maptype == "iitc") {
+      page.evaluate(function(dateTime, search) {
+        var water = document.createElement('p');
+        water.id='watermark-ice';
+        water.innerHTML = dateTime + ' - ' + search;
+        water.style.position = 'absolute';
+        water.style.color = '#3A539B';
+        water.style.top = '0';
+        water.style.zIndex = '4404';
+        water.style.marginTop = '0';
+        water.style.paddingTop = '0';
+        water.style.left = '0';
+        water.style.fontSize = '30px';
+        water.style.opacity = '0.8';
+        water.style.fontFamily = 'monospace';
+        water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
+        document.querySelectorAll('body')[0].appendChild(water);
+      }, time, search);
+    }else {
+      page.evaluate(function(dateTime, search) {
+        var water = document.createElement('p');
+        water.id='watermark-ice';
+        water.style.zIndex = '4404';
+        water.innerHTML = dateTime + ' - ' + search;
+        water.style.position = 'absolute';
+        water.style.color = 'orange';
+        water.style.top = '0';
+        water.style.left = '0';
+        water.style.fontSize = '30px';
+        water.style.opacity = '0.8';
+        water.style.marginTop = '0';
+        water.style.paddingTop = '0';
+        water.style.fontFamily = 'monospace';
+        water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
+        document.querySelectorAll('body')[0].appendChild(water);
+      }, time, search);
+    }
   }
 }
 
