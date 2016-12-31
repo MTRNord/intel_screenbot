@@ -237,35 +237,38 @@ function portalinfoScreen(){
 	var clipRect = page.evaluate(function(){
 	  return document.querySelector('#sidebar').getBoundingClientRect();
 	});
+        setTimeout(function() {
+	  var elementHeight = page.evaluate(function(){
+	    return $("#sidebar").height();
+	  });
 
-	var elementHeight = page.evaluate(function(){
-	  return document.querySelector('#sidebar').offsetHeight;
-	});
-	      
-	page.clipRect = {
-          top:    clipRect.top,
-          left:   clipRect.left,
-          width:  clipRect.width,
-          height: elementHeight
-	}
-        setTimeout(function() {s(filepath)}, "1000");
+	  page.clipRect = {
+	    top:    clipRect.top,
+	    left:   clipRect.left,
+	    width:  clipRect.width,
+	    height: elementHeight
+	  }
+	  setTimeout(function() {s(filepath)}, "1000");
+	}, "2000");
       },
       error: function () {
 	var clipRect = page.evaluate(function(){
 	  return document.querySelector('#sidebar').getBoundingClientRect();
 	});
 
-	var elementHeight = page.evaluate(function(){
-	  return document.querySelector('#sidebar').offsetHeight;
-	});
-	      
-	page.clipRect = {
-          top:    clipRect.top,
-          left:   clipRect.left,
-          width:  clipRect.width,
-          height: elementHeight
-        }
-        setTimeout(function() {s(filepath)}, "1000");
+        setTimeout(function() {
+	  var elementHeight = page.evaluate(function(){
+	    return $("#sidebar").height();
+	  });
+
+	  page.clipRect = {
+	    top:    clipRect.top,
+	    left:   clipRect.left,
+	    width:  clipRect.width,
+	    height: elementHeight
+	  }
+	  setTimeout(function() {s(filepath)}, "1000");
+	}, "2000");
       }
     });
   }, "1000");
