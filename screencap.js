@@ -31,14 +31,12 @@ function loadCookies(callback) {
     while(!stream.atEnd()) {
       var line = stream.readLine().split('=');
       if(line[0] === 'SACSID') {
-        SACSID = line[0];
-	CSRF = line[1];
+        config.SACSID = line[1];
       } else if(line[0] === 'csrftoken') {
-        CSRF = line[1];
-	SACSID = line[0];
+        config.CSRF = line[1];
       } else {
-        SACSID = '';
-        CSRF = '';
+        config.SACSID = '';
+        config.CSRF = '';
       }
     }
     stream.close();
@@ -64,10 +62,10 @@ function addCookies(sacsid, csrf) {
 }
 
 loadCookies(function() {
-  if (SACSID == undefined || SACSID == '') {
+  if (config.SACSID == undefined || config.SACSID == '') {
     firePlainLogin(user, pass, url);
   } else {
-    addCookies(SACSID, CSRF);
+    addCookies(config.SACSID, config.CSRF);
     afterLogin(url, search, "cookie");
   }
 });
