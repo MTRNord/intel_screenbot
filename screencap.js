@@ -238,11 +238,15 @@ function portalinfoScreen(){
 	  return document.querySelector('#sidebar').getBoundingClientRect();
 	});
 
+	var elementHeight = page.evaluate(function(){
+	  return document.querySelector('#sidebar').offsetHeight();
+	});
+	      
 	page.clipRect = {
           top:    clipRect.top,
           left:   clipRect.left,
           width:  clipRect.width,
-          height: clipRect.height
+          height: elementHeight
 	}
         setTimeout(function() {s(filepath)}, "1000");
       },
@@ -251,11 +255,15 @@ function portalinfoScreen(){
 	  return document.querySelector('#sidebar').getBoundingClientRect();
 	});
 
+	var elementHeight = page.evaluate(function(){
+	  return document.querySelector('#sidebar').offsetHeight();
+	});
+	      
 	page.clipRect = {
           top:    clipRect.top,
           left:   clipRect.left,
           width:  clipRect.width,
-          height: clipRect.height
+          height: elementHeight
         }
         setTimeout(function() {s(filepath)}, "1000");
       }
