@@ -22,6 +22,7 @@ if (args.length === 1) {
   var filepath = arguments['filepath']
   var user = arguments['email']
   var pass = arguments['password']
+  var screenshotfunction = arguments['screenshotfunction']
 }
 
 function loadCookies(callback) {
@@ -171,11 +172,97 @@ function login(l, p, url) {
     });
 }
 
+function map(search){
+  setTimeout(function() {
+    if (search != 'nix') {
+      searchfunc(search);
+    }
+    waitFor({
+      timeout: 240000,
+      check: function () {
+        return page.evaluate(function(zoomlevel) {
+          if (document.querySelector('.map').textContent.indexOf('done') != -1) {
+            return true;
+          }else{
+            console.log('generateFakeOutput')
+            return false;
+          }
+        }, zoomlevel);
+      },
+      success: function () {
+        var startTime = new Date().getTime();
+        var interval = setInterval(function(){
+          if(new Date().getTime() - startTime > 5000){
+            hideDebris();
+            prepare('1280', '720');
+            main();
+            clearInterval(interval);
+            return;
+          }
+          console.log('generateFakeOutput')
+        }, 1000);
+      },
+      error: function () {
+        var startTime = new Date().getTime();
+        var interval = setInterval(function(){
+          if(new Date().getTime() - startTime > 5000){
+            hideDebris();
+            prepare('1280', '720');
+            main();
+            clearInterval(interval);
+            return;
+          }
+          console.log('generateFakeOutput')
+        }, 1000);
+      }
+    });
+  }, "1000");
+}
+
+function portalinfoScreen(file){
+  setTimeout(function() {
+    page.evaluate(function() {
+      (function($) {
+        $.fn.allBut = function(context) {
+          var target = this;
+          var otherList = $();
+          var processList = $(context || 'body').children();
+          while (processList.size() > 0) {
+            var cElem = processList.first();
+            processList = processList.slice(1);
+              if (cElem.filter(target).size() != target.size()) {
+                if (cElem.has(target).size() > 0) {
+                  processList = processList.add(cElem.children());
+                } else {
+                  otherList = otherList.add(cElem);
+                }
+              }
+          }
+          return otherList;
+        }
+      })(jQuery);
+      $('#sidebar').allBut().hide();
+    });
+    width = page.evaluate(function() {
+      return document.getElementById('sidebar').clientWidth;
+    });  
+    height = page.evaluate(function() {
+      return document.getElementById('sidebar').clientHeight;
+    });
+    page.viewportSize = { width: width, height: height };
+    setTimeout(function() {s(file)}, "1000");
+  }, "1000");
+}
+
+function portalinfoText(){
+  
+}
+
 function afterLogin(url, search, mode) {
   page.viewportSize = { width: '1280', height: '720' };
   page.open(url, function(status) {
     console.log(url)
-    if (status !== 'success') {console.log('unable to connect to remote server afterPlainLogin'); phantom.exit(0);}
+    if (status !== 'success') {console.log('unable to connect to remote server after Login'); phantom.exit(0);}
     if (!isSignedIn()) {
       if(mode =="cookie"){
         if(fs.exists(cookiespath)) {
@@ -190,50 +277,13 @@ function afterLogin(url, search, mode) {
         storeCookies();
       }
       setupIITC()
-      setTimeout(function() {
-        if (search != 'nix') {
-          searchfunc(search);
-        }
-        waitFor({
-          timeout: 240000,
-          check: function () {
-            return page.evaluate(function(zoomlevel) {
-              if (document.querySelector('.map').textContent.indexOf('done') != -1) {
-                return true;
-              }else{
-                console.log('generateFakeOutput')
-                return false;
-              }
-            }, zoomlevel);
-          },
-          success: function () {
-            var startTime = new Date().getTime();
-            var interval = setInterval(function(){
-              if(new Date().getTime() - startTime > 5000){
-                hideDebris();
-                prepare('1280', '720');
-                main();
-                clearInterval(interval);
-                return;
-              }
-              console.log('generateFakeOutput')
-            }, 1000);
-          },
-          error: function () {
-            var startTime = new Date().getTime();
-            var interval = setInterval(function(){
-              if(new Date().getTime() - startTime > 5000){
-                hideDebris();
-                prepare('1280', '720');
-                main();
-                clearInterval(interval);
-                return;
-              }
-              console.log('generateFakeOutput')
-            }, 1000);
-          }
-        });
-      }, "1000");
+      if(screenshotfunction = "map"){
+        map(search);
+      }else if (screenshotfunction = "portalinfoScreen"){
+        portalinfoScreen(file);
+      }else if (screenshotfunction = "portalinfoText"){
+        portalinfoText();
+      }
     }, "1000");
   });
 }
