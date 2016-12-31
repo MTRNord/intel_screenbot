@@ -1,13 +1,9 @@
 from bs4 import BeautifulSoup
 import requests
 import json
-import asyncio, io, logging, os, re, time, tempfile
-import subprocess
+import asyncio, io, logging, os, tempfile
 import plugins
 import re
-from asyncio import subprocess
-from shutil import move
-from os import remove, close
 
 logger = logging.getLogger(__name__)
 
@@ -20,13 +16,9 @@ def _initialise(bot):
 
 @asyncio.coroutine
 def _open_file(name):
-    logger.debug("opening screenshot file: {}".format(name))
-    statinfo = os.stat(name)
-    logger.info(statinfo.st_size)
     return open(name, 'rb')
 
 def _parse_onlineRepos(url, ext=''):
-    logger.debug("parsing github or gitlab or http(s)")
     page = requests.get(url).text
     if 'gitlab.com' in url:
         files = []
@@ -96,7 +88,6 @@ def _screencap(url, args_filepath, filepath, filename, bot, event):
 
     # read the resulting file into a byte array
     # yield from asyncio.sleep(10)
-    logger.info(filepath)
     file_resource = yield from _open_file(filepath)
     file_data = yield from loop.run_in_executor(None, file_resource.read)
     image_data = yield from loop.run_in_executor(None, io.BytesIO, file_data)
@@ -107,6 +98,8 @@ def _screencap(url, args_filepath, filepath, filename, bot, event):
             os.unlink(filepath)
             os.unlink(args_filepath)
         except Exception as e:
+            os.unlink(filepath)
+            os.unlink(args_filepath)
             logger.exception("upload failed: {}".format(url))
             logger.exception("exception: {}".format(e))
             yield from bot.coro_send_message(event.conv_id, "<i>error uploading screenshot</i>")
@@ -114,8 +107,8 @@ def _screencap(url, args_filepath, filepath, filename, bot, event):
 
 def setintel(bot, event, *args):
     """set url for current converation for the intel or iitc command.
-    use /bot clearintel to clear the previous url before setting a new one.
-    """
+    use /bot clearintel to clear the previous url before setting a new one."""
+    
     url = bot.conversation_memory_get(event.conv_id, 'IntelURL')
     if url is None:
         bot.conversation_memory_set(event.conv_id, 'IntelURL', ''.join(args))
@@ -130,8 +123,7 @@ def setintel(bot, event, *args):
 
 
 def intel(bot, event, *args):
-    """get a screenshot of a search term or intel URL or the default intel URL of the hangout.
-    """
+    """get a screenshot of a search term or intel URL or the default intel URL of the hangout."""
 
     arguments = {}
 
@@ -143,7 +135,10 @@ def intel(bot, event, *args):
         if '"' in url:
             url = url.replace('"', '')
     else:
-        url = bot.conversation_memory_get(event.conv_id, 'IntelURL')
+        try:
+            url = bot.conversation_memory_get(event.conv_id, 'IntelURL')
+        except:
+            url = 'https://www.ingress.com/intel'
 
     if bot.config.exists(["intel_screenbot", "email"]):
         if bot.config.exists(["intel_screenbot", "password"]):
@@ -175,7 +170,7 @@ def intel(bot, event, *args):
                 if zoomlevel.isdigit():
                     yield from bot.coro_send_message(event.conv_id, "<i>intel map at zoom level "+ zoomlevel + " requested, please wait...</i>")
             else:
-                yield from bot.coro_send_message(event.conv_id, "<i>intel map at last zoom level requested, please wait...</i>")
+                yield from bot.coro_send_message(event.conv_id, "<i>intel map requested, please wait...</i>")
         else:
             search = url
             zoomParameter = re.search(r"(?<=z=)", url, re.IGNORECASE)
@@ -186,17 +181,15 @@ def intel(bot, event, *args):
                 zoomlevel = zoomlevel_raw.group()
                 search = search.replace("z={}".format(zoomlevel),"")
                 if zoomlevel.isdigit():
-                    yield from bot.coro_send_message(event.conv_id, "<i>intel map is searching " + search + " and screenshooting at zoom level "+ zoomlevel + " as requested, please wait...</i>")
+                    yield from bot.coro_send_message(event.conv_id, "<i>searching " + search + " on intel map and screenshooting at zoom level "+ zoomlevel + " as requested, please wait...</i>")
                     arguments['zoomlevel'] = str(zoomlevel)
             else:
-                yield from bot.coro_send_message(event.conv_id, "<i>intel map is searching " + search + " and screenshooting as requested, please wait...</i>")
+                yield from bot.coro_send_message(event.conv_id, "<i>searching " + search + " on intel map and screenshooting as requested, please wait...</i>")
             url = 'https://www.ingress.com/intel'
 
         filepath = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
         filename = filepath.split('/', filepath.count('/'))[-1]
         args_filepath = tempfile.NamedTemporaryFile(prefix="args_{}".format(event.conv_id), suffix=".json", delete=False).name
-        logger.debug("temporary screenshot file: {}".format(filepath))
-        logger.debug("temporary args file: {}".format(args_filepath))
 
         arguments['search'] = search
         arguments['url'] = url
@@ -205,8 +198,7 @@ def intel(bot, event, *args):
 
         with open(args_filepath, 'w') as out:
             out.write(json.dumps(arguments))
-
-
+            
         try:
             loop = asyncio.get_event_loop()
             image_data = yield from _screencap(url, args_filepath, filepath, filename, bot, event)
@@ -217,8 +209,7 @@ def intel(bot, event, *args):
 
 
 def iitc(bot, event, *args):
-    """get a screenshot of a search term or intel URL or the default intel URL of the hangout.
-    """
+    """get a screenshot of a search term or intel URL or the default intel URL of the hangout."""
 
     arguments = {}
 
@@ -260,9 +251,9 @@ def iitc(bot, event, *args):
                 zoomlevel_clean = zoomlevel_raw.group()
                 zoomlevel = zoomlevel_clean[3:][:2]
                 if zoomlevel.isdigit():
-                    yield from bot.coro_send_message(event.conv_id, "<i>intel map at zoom level "+ zoomlevel + " requested, please wait...</i>")
+                    yield from bot.coro_send_message(event.conv_id, "<i>iitc map at zoom level "+ zoomlevel + " requested, please wait...</i>")
             else:
-                yield from bot.coro_send_message(event.conv_id, "<i>intel map at last zoom level requested, please wait...</i>")
+                yield from bot.coro_send_message(event.conv_id, "<i>iitc map requested, please wait...</i>")
         else:
             search = url
             zoomParameter = re.search(r"(?<=z=)", url, re.IGNORECASE)
@@ -273,10 +264,10 @@ def iitc(bot, event, *args):
                 zoomlevel = zoomlevel_raw.group()
                 search = search.replace("z={}".format(zoomlevel),"")
                 if zoomlevel.isdigit():
-                    yield from bot.coro_send_message(event.conv_id, "<i>intel map is searching " + search + " and screenshooting at zoom level "+ zoomlevel + " as requested, please wait...</i>")
+                    yield from bot.coro_send_message(event.conv_id, "<i>searching " + search + " on iitc map and screenshooting it at zoom level "+ zoomlevel + " as requested, please wait...</i>")
                     arguments['zoomlevel'] = str(zoomlevel)
             else:
-                yield from bot.coro_send_message(event.conv_id, "<i>intel map is searching " + search + " and screenshooting as requested, please wait...</i>")
+                yield from bot.coro_send_message(event.conv_id, "<i>searching " + search + " on iitc map and and screenshooting it as requested, please wait...</i>")
             url = 'https://www.ingress.com/intel'
 
         filepath = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
@@ -313,6 +304,7 @@ def iitc(bot, event, *args):
             return
 
 def show_iitcplugins(bot, event, *args):
+    """Shows all available iitc Plugins."""
     if bot.memory.exists(["iitc_plugins"]):
         plugin_names = []
         for plugin_objects in bot.memory.get_by_path(["iitc_plugins"]):
@@ -322,6 +314,7 @@ def show_iitcplugins(bot, event, *args):
         yield from bot.coro_send_to_user_and_conversation(event.user.id_.chat_id, event.conv_id, "<i><b>IITC Plugins:</b><br> {}</i>".format(', <br>'.join(str(i) for i in plugin_names)), _("<i><b>{}</b>, I've sent you the plugins ;)</i>").format(event.user.full_name))
 
 def set_iitcplugins(bot, event, *args):
+    """sets the activated iitc plugins for a hangout."""
     if not bot.conversation_memory_get(event.conv_id, 'iitc_plugins') is None:
         bot.conversation_memory_set(event.conv_id, 'iitc_plugins', None)
         bot.conversation_memory_set(event.conv_id, 'iitc_plugins', ', '.join(args))
@@ -333,10 +326,10 @@ def set_iitcplugins(bot, event, *args):
         yield from bot.coro_send_message(event.conv, html)
 
 def active_iitcplugins(bot, event, *args):
+    """shows the activated iitc plugins for a hangout."""
     if bot.conversation_memory_get(event.conv_id, 'iitc_plugins') is None:
         html = "<i><b>{}</b> no active IITC Plugins for this conversation".format(event.user.full_name)
         yield from bot.coro_send_message(event.conv, html)
-
     else:
         plugins = bot.conversation_memory_get(event.conv_id, 'iitc_plugins')
         html = "<i><b>{}</b> plugins for this conversation: {}<br />".format(event.user.full_name, plugins)

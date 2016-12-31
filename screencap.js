@@ -23,20 +23,6 @@ if (args.length === 1) {
   var user = arguments['email']
   var pass = arguments['password']
 }
-function quit() {
-  phantom.exit(0);
-}
-
-loadCookies(function() {
-  if (config.SACSID == undefined || config.SACSID == '') {
-    firePlainLogin(user, pass, url);
-  } else {
-    addCookies(config.SACSID, config.CSRF);
-    console.log('Using cookies to log in');
-    afterCookieLogin(url, search);
-  }
-});
-
 
 function loadCookies(callback) {
   if(fs.exists(cookiespath)) {
@@ -58,6 +44,45 @@ function loadCookies(callback) {
   callback();
 }
 
+function addCookies(sacsid, csrf) {
+  phantom.addCookie({
+    name: 'SACSID',
+    value: sacsid,
+    domain: 'www.ingress.com',
+    path: '/',
+    httponly: true,
+    secure: true
+  });
+  phantom.addCookie({
+    name: 'csrftoken',
+    value: csrf,
+    domain: 'www.ingress.com',
+    path: '/'
+  });
+}
+
+loadCookies(function() {
+  if (config.SACSID == undefined || config.SACSID == '') {
+    firePlainLogin(user, pass, url);
+  } else {
+    addCookies(config.SACSID, config.CSRF);
+    afterLogin(url, search, "cookie");
+  }
+});
+
+function waitFor ($config) {
+    $config._start = $config._start || new Date();
+    if ($config.timeout && new Date - $config._start > $config.timeout) {
+        if ($config.error) $config.error();
+        return;
+    }
+    if ($config.check()) {
+        return $config.success();
+    }
+    setTimeout(waitFor, $config.interval || 0, $config);
+}
+
+
 function isSignedIn() {
   return page.evaluate(function() {
     return document.getElementsByTagName('a')[0].innerText.trim() !== 'Sign in';
@@ -77,7 +102,7 @@ function firePlainLogin(user, pass, url) {
     page.evaluate(function () {
       localStorage.clear()
     });
-    if (status !== 'success') {console.log("Login ERROR"); quit();}
+    if (status !== 'success') {console.log("Login ERROR"); phantom.exit(0);}
     var link = 'https://www.google.com/accounts/ServiceLogin?service=ah&passive=true&continue=https://appengine.google.com/_ah/conflogin%3Fcontinue%3Dhttps://www.ingress.com/intel&ltmpl='
     page.open(link, function () {
       login(user, pass, url);
@@ -123,7 +148,7 @@ function login(l, p, url) {
                 window.setTimeout(function () {
                     if (page.url.substring(0,40) === 'https://accounts.google.com/ServiceLogin') {
                         console.log("login failed: wrong email and/or password")
-                        quit()
+                        phantom.exit(0);
                     }
 
                     if (page.url.substring(0,40) === 'https://appengine.google.com/_ah/loginfo') {
@@ -136,112 +161,81 @@ function login(l, p, url) {
                     if (page.url.substring(0,44) === 'https://accounts.google.com/signin/challenge') {
                         twostep = system.stdin.readLine();
                     }
-                    window.setTimeout(afterPlainLogin(url, search), loginTimeout);
+                    window.setTimeout(afterLogin(url, search, "plain"), loginTimeout);
                 }, loginTimeout)
             }, loginTimeout / 10);
         },
         error: function () {
-            console.log("error waitingFor loginform")
-            quit();
+            phantom.exit(0);
         }
     });
 }
 
-function afterPlainLogin(url, search) {
+function afterLogin(url, search, mode) {
   page.viewportSize = { width: '1280', height: '720' };
   page.open(url, function(status) {
     console.log(url)
-    if (status !== 'success') {console.log('unable to connect to remote server afterPlainLogin'); quit()}
+    if (status !== 'success') {console.log('unable to connect to remote server afterPlainLogin'); phantom.exit(0);}
     if (!isSignedIn()) {
+      if(mode =="cookie"){
+        if(fs.exists(cookiespath)) {
+          fs.remove(cookiespath);
+        }
+      }
       console.log("not logged in")
       quit();
     }
     setTimeout(function() {
-      storeCookies();
-		  setupIITC()
-        setTimeout(function() {
-          setTimeout(function() {
-            if (search != 'nix') {
-              searchfunc(search);
-            }
-          }, 1000);
-            waitFor({
-                timeout: 240000,
-                check: function () {
-                  return page.evaluate(function(zoomlevel) {
-                    if (typeof zoomlevel === 'undefined' || zoomlevel === null) {
-                      window.map.setZoom(zoomlevel,animate=false)
-                    }
-                    if (document.querySelector('.map').textContent.indexOf('done') != -1) {
-                        return true;
-                    }else{
-                        console.log('generateFakeOutput')
-                        return false;
-                    }
-                  }, zoomlevel);
-                },
-                success: function () {
-                  var startTime = new Date().getTime();
-                  var interval = setInterval(function(){
-                    if(new Date().getTime() - startTime > 5000){
-                      hideDebris();
-                      prepare('1280', '720');
-                      main();
-                      clearInterval(interval);
-                      return;
-                    }
-                    console.log('generateFakeOutput')
-                  }, 1000);
-                },
-                error: function () {
-                  var startTime = new Date().getTime();
-                  var interval = setInterval(function(){
-                    if(new Date().getTime() - startTime > 5000){
-                      hideDebris();
-                      prepare('1280', '720');
-                      main();
-                      clearInterval(interval);
-                      return;
-                    }
-                    console.log('generateFakeOutput')
-                  }, 1000);
-                }
-            });
-        }, "1000");
+      if(mode == "plain"){
+        storeCookies();
+      }
+      setupIITC()
+      setTimeout(function() {
+        if (search != 'nix') {
+          searchfunc(search);
+        }
+        waitFor({
+          timeout: 240000,
+          check: function () {
+            return page.evaluate(function(zoomlevel) {
+              if (document.querySelector('.map').textContent.indexOf('done') != -1) {
+                return true;
+              }else{
+                console.log('generateFakeOutput')
+                return false;
+              }
+            }, zoomlevel);
+          },
+          success: function () {
+            var startTime = new Date().getTime();
+            var interval = setInterval(function(){
+              if(new Date().getTime() - startTime > 5000){
+                hideDebris();
+                prepare('1280', '720');
+                main();
+                clearInterval(interval);
+                return;
+              }
+              console.log('generateFakeOutput')
+            }, 1000);
+          },
+          error: function () {
+            var startTime = new Date().getTime();
+            var interval = setInterval(function(){
+              if(new Date().getTime() - startTime > 5000){
+                hideDebris();
+                prepare('1280', '720');
+                main();
+                clearInterval(interval);
+                return;
+              }
+              console.log('generateFakeOutput')
+            }, 1000);
+          }
+        });
+      }, "1000");
     }, "1000");
   });
-}
-
-
-
-function addCookies(sacsid, csrf) {
-  phantom.addCookie({
-    name: 'SACSID',
-    value: sacsid,
-    domain: 'www.ingress.com',
-    path: '/',
-    httponly: true,
-    secure: true
-  });
-  phantom.addCookie({
-    name: 'csrftoken',
-    value: csrf,
-    domain: 'www.ingress.com',
-    path: '/'
-  });
-}
-
-
-function waitFor ($config) {
-    $config._start = $config._start || new Date();
-    if ($config.timeout && new Date - $config._start > $config.timeout) {
-        if ($config.error) $config.error();
-        return;
-    }
-    if ($config.check()) {
-        return $config.success();
-    }
-    setTimeout(waitFor, $config.interval || 0, $config);
 }
 
 function loadIitcPlugin(src) {
@@ -257,82 +251,21 @@ function loadLocalIitcPlugin(src) {
     page.injectJs(src)
 }
 
-function afterCookieLogin(url, search) {
-  page.viewportSize = { width: '1280', height: '720' };
-  page.open(url, function(status) {
-    if (status !== 'success') {quit('unable to connect to remote server')}
-    if(!isSignedIn()) {
-      if(fs.exists(cookiespath)) {
-        fs.remove(cookiespath);
-      }
-      quit('Cookies are obsolete. Update your config file.');
-    }
-    setTimeout(function() {
-    	setupIITC()
-        setTimeout(function() {
-          if (search != "nix") {
-            searchfunc(search);
-          }
-            waitFor({
-                timeout: 240000,
-                check: function () {
-                  return page.evaluate(function() {
-                    if (document.querySelector('.map').textContent.indexOf('done') != -1) {
-                        return true;
-                    }else{
-                        console.log('generateFakeOutput')
-                        return false;
-                    }
-                  });
-                },
-                success: function () {
-                  var startTime = new Date().getTime();
-                  var interval = setInterval(function(){
-                    if(new Date().getTime() - startTime > 5000){
-                      hideDebris();
-                      prepare('1280', '720');
-                      main();
-                      clearInterval(interval);
-                      return;
-                    }
-                    console.log('generateFakeOutput')
-                  }, 1000);
-                },
-                error: function () {
-                  var startTime = new Date().getTime();
-                  var interval = setInterval(function(){
-                    if(new Date().getTime() - startTime > 5000){
-                      hideDebris();
-                      prepare('1280', '720');
-                      main();
-                      clearInterval(interval);
-                      return;
-                    }
-                    console.log('generateFakeOutput')
-                  }, 1000);
-                }
-            });
-        }, "1000");
-    }, "1000");
-  });
-}
-
 function searchfunc(search){
   page.evaluate(function(search, zoomlevel) {
     if (document.querySelector('#search')){
-        window.addHook('search', function(query) {
-          var checkExist = setInterval(function() {
-            if (query.results.length > 0) {
-              console.warn(query.results)
-              map.fitBounds(query.results[0].bounds, {maxZoom: 17})
-              clearInterval(checkExist);
-            }
-            if (typeof zoomlevel !== 'undefined' || zoomlevel !== null) {
-              console.log(zoomlevel)
-              window.map.setZoom(zoomlevel,animate=false)
-            }
-          }, 100);
-        });
+      window.addHook('search', function(query) {
+        var checkExist = setInterval(function() {
+          if (query.results.length > 0) {
+            map.fitBounds(query.results[0].bounds, {maxZoom: 17})
+            clearInterval(checkExist);
+          }
+          if (typeof zoomlevel !== 'undefined' || zoomlevel !== null) {
+            console.log(zoomlevel)
+            window.map.setZoom(zoomlevel,animate=false)
+          }
+        }, 100);
+      });
       setTimeout(function() {
         window.search.doSearch(search, true)
       }, 2000);
@@ -341,47 +274,46 @@ function searchfunc(search){
 }
 
 function setupIITC(){
-    loadIitcPlugin('https://static.iitc.me/build/release/plugins/canvas-render.user.js');
-    page.evaluate(function(maptype) {
-        localStorage['ingress.intelmap.layergroupdisplayed'] = JSON.stringify({
-          "Unclaimed Portals": true,
-          "Level 1 Portals": true,
-          "Level 2 Portals": true,
-          "Level 3 Portals": true,
-          "Level 4 Portals": true,
-          "Level 5 Portals": true,
-          "Level 6 Portals": true,
-          "Level 7 Portals": true,
-          "Level 8 Portals": true,
-		      "Fields": true,
-		      "Links": true,
-		      "Resistance": true,
-		      "Enlightened": true,
-          "DEBUG Data Tiles":false,
-          "Artifacts":true,
-          "Ornaments":true
-        });
-        var script = document.createElement('script');
-        script.type='text/javascript';
-        script.src='https://static.iitc.me/build/test/total-conversion-build.user.js';
-        document.head.insertBefore(script, document.head.lastChild);
-        if (maptype == "intel") {
-          localStorage['iitc-base-map'] = 'Google Default Ingress Map';
-        }else {
-          localStorage['iitc-base-map'] = 'Google Roads';
-        }
-    }, maptype);
-    if (maptype != "intel") {
-      console.log(plugins);
-      for(var i in plugins){
-          var plugin = plugins[i];
-          if(plugin.match('(http(s)?:\/\/)')){
-              loadIitcPlugin(plugin);
-          }else{
-             loadLocalIitcPlugin(plugin);
-          }
+  loadIitcPlugin('https://static.iitc.me/build/release/plugins/canvas-render.user.js');
+  page.evaluate(function(maptype) {
+    localStorage['ingress.intelmap.layergroupdisplayed'] = JSON.stringify({
+      "Unclaimed Portals": false,
+      "Level 1 Portals": true,
+      "Level 2 Portals": true,
+      "Level 3 Portals": true,
+      "Level 4 Portals": true,
+      "Level 5 Portals": true,
+      "Level 6 Portals": true,
+      "Level 7 Portals": true,
+      "Level 8 Portals": true,
+      "Fields": true,
+      "Links": true,
+      "Resistance": true,
+      "Enlightened": true,
+      "DEBUG Data Tiles":false,
+      "Artifacts":true,
+      "Ornaments":true
+    });
+    var script = document.createElement('script');
+    script.type='text/javascript';
+    script.src='https://static.iitc.me/build/test/total-conversion-build.user.js';
+    document.head.insertBefore(script, document.head.lastChild);
+    if (maptype == "intel") {
+      localStorage['iitc-base-map'] = 'Google Default Ingress Map';
+    }else {
+      localStorage['iitc-base-map'] = 'Google Roads';
+    }
+  }, maptype);
+  if (maptype != "intel") {
+    for(var i in plugins){
+      var plugin = plugins[i];
+      if(plugin.match('(http(s)?:\/\/)')){
+        loadIitcPlugin(plugin);
+      }else{
+        loadLocalIitcPlugin(plugin);
       }
     }
+  }
 }
 
 function s(file) {
@@ -392,7 +324,7 @@ function s(file) {
   var interval = setInterval(function(){
     if(new Date().getTime() - startTime > 5000){
       clearInterval(interval);
-      quit();
+      phantom.exit(0);
       return;
     }
     console.log('doSomeOutput')
@@ -481,81 +413,81 @@ function getDateTime(format) {
 
 function addTimestamp(time) {
   if (search == "nix") {
-	if (maptype == "iitc") {
-	    page.evaluate(function(dateTime, search) {
-	      var water = document.createElement('p');
-	      water.id='watermark-ice';
-	      water.innerHTML = dateTime;
-	      water.style.position = 'absolute';
-	      water.style.color = '#3A539B';
-	      water.style.top = '0';
-	      water.style.zIndex = '4404';
-	      water.style.marginTop = '0';
-	      water.style.paddingTop = '0';
-	      water.style.left = '0';
-	      water.style.fontSize = '40px';
-	      water.style.opacity = '0.8';
-	      water.style.fontFamily = 'monospace';
-	      water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
-	      document.querySelectorAll('body')[0].appendChild(water);
-	    }, time, search);
-	  }else {
-	    page.evaluate(function(dateTime, search) {
-	      var water = document.createElement('p');
-	      water.id='watermark-ice';
-	      water.style.zIndex = '4404';
-	      water.innerHTML = dateTime;
-	      water.style.position = 'absolute';
-	      water.style.color = 'orange';
-	      water.style.top = '0';
-	      water.style.left = '0';
-	      water.style.fontSize = '40px';
-	      water.style.opacity = '0.8';
-	      water.style.marginTop = '0';
-	      water.style.paddingTop = '0';
-	      water.style.fontFamily = 'monospace';
-	      water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
-	      document.querySelectorAll('body')[0].appendChild(water);
-	    }, time, search);
-	  }
+    if (maptype == "iitc") {
+      page.evaluate(function(dateTime, search) {
+        var water = document.createElement('p');
+	water.id='watermark-ice';
+	water.innerHTML = dateTime;
+	water.style.position = 'absolute';
+	water.style.color = '#3A539B';
+	water.style.top = '0';
+	water.style.zIndex = '4404';
+	water.style.marginTop = '0';
+	water.style.paddingTop = '0';
+	water.style.left = '0';
+	water.style.fontSize = '30px';
+	water.style.opacity = '0.8';
+	water.style.fontFamily = 'monospace';
+	water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
+	document.querySelectorAll('body')[0].appendChild(water);
+      }, time, search);
+    }else {
+      page.evaluate(function(dateTime, search) {
+        var water = document.createElement('p');
+        water.id='watermark-ice';
+        water.style.zIndex = '4404';
+        water.innerHTML = dateTime;
+        water.style.position = 'absolute';
+        water.style.color = 'orange';
+        water.style.top = '0';
+        water.style.left = '0';
+        water.style.fontSize = '30px';
+        water.style.opacity = '0.8';
+        water.style.marginTop = '0';
+        water.style.paddingTop = '0';
+        water.style.fontFamily = 'monospace';
+        water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
+        document.querySelectorAll('body')[0].appendChild(water);
+      }, time, search);
+    }
   }else{
-	  if (maptype == "iitc") {
-	    page.evaluate(function(dateTime, search) {
-	      var water = document.createElement('p');
-	      water.id='watermark-ice';
-	      water.innerHTML = dateTime + ' - ' + search;
-	      water.style.position = 'absolute';
-	      water.style.color = '#3A539B';
-	      water.style.top = '0';
-	      water.style.zIndex = '4404';
-	      water.style.marginTop = '0';
-	      water.style.paddingTop = '0';
-	      water.style.left = '0';
-	      water.style.fontSize = '40px';
-	      water.style.opacity = '0.8';
-	      water.style.fontFamily = 'monospace';
-	      water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
-	      document.querySelectorAll('body')[0].appendChild(water);
-	    }, time, search);
-	  }else {
-	    page.evaluate(function(dateTime, search) {
-	      var water = document.createElement('p');
-	      water.id='watermark-ice';
-	      water.style.zIndex = '4404';
-	      water.innerHTML = dateTime + ' - ' + search;
-	      water.style.position = 'absolute';
-	      water.style.color = 'orange';
-	      water.style.top = '0';
-	      water.style.left = '0';
-	      water.style.fontSize = '40px';
-	      water.style.opacity = '0.8';
-	      water.style.marginTop = '0';
-	      water.style.paddingTop = '0';
-	      water.style.fontFamily = 'monospace';
-	      water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
-	      document.querySelectorAll('body')[0].appendChild(water);
-	    }, time, search);
-	  }
+    if (maptype == "iitc") {
+      page.evaluate(function(dateTime, search) {
+        var water = document.createElement('p');
+        water.id='watermark-ice';
+        water.innerHTML = dateTime + ' - ' + search;
+        water.style.position = 'absolute';
+        water.style.color = '#3A539B';
+        water.style.top = '0';
+        water.style.zIndex = '4404';
+        water.style.marginTop = '0';
+        water.style.paddingTop = '0';
+        water.style.left = '0';
+        water.style.fontSize = '30px';
+        water.style.opacity = '0.8';
+        water.style.fontFamily = 'monospace';
+        water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
+        document.querySelectorAll('body')[0].appendChild(water);
+      }, time, search);
+    }else {
+      page.evaluate(function(dateTime, search) {
+        var water = document.createElement('p');
+        water.id='watermark-ice';
+        water.style.zIndex = '4404';
+        water.innerHTML = dateTime + ' - ' + search;
+        water.style.position = 'absolute';
+        water.style.color = 'orange';
+        water.style.top = '0';
+        water.style.left = '0';
+        water.style.fontSize = '30px';
+        water.style.opacity = '0.8';
+        water.style.marginTop = '0';
+        water.style.paddingTop = '0';
+        water.style.fontFamily = 'monospace';
+        water.style.textShadow = '0px 1px 8px rgba(150, 150, 150, 1)';
+        document.querySelectorAll('body')[0].appendChild(water);
+      }, time, search);
+    }
   }
 }
 
