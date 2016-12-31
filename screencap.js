@@ -243,7 +243,7 @@ function portalinfoScreen(){
           left:   clipRect.left,
           width:  clipRect.width,
           height: clipRect.height
-        });
+	}
         setTimeout(function() {s(filepath)}, "1000");
       },
       error: function () {
@@ -256,7 +256,7 @@ function portalinfoScreen(){
           left:   clipRect.left,
           width:  clipRect.width,
           height: clipRect.height
-        });
+        }
         setTimeout(function() {s(filepath)}, "1000");
       }
     });
