@@ -1,13 +1,9 @@
 from bs4 import BeautifulSoup
 import requests
 import json
-import asyncio, io, logging, os, re, time, tempfile
-import subprocess
+import asyncio, io, logging, os, tempfile
 import plugins
 import re
-from asyncio import subprocess
-from shutil import move
-from os import remove, close
 
 logger = logging.getLogger(__name__)
 
