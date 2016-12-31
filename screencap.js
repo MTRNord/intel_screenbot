@@ -31,9 +31,11 @@ function loadCookies(callback) {
     while(!stream.atEnd()) {
       var line = stream.readLine().split('=');
       if(line[0] === 'SACSID') {
-        SACSID = line[1];
+        SACSID = line[0];
+	CSRF = line[1];
       } else if(line[0] === 'csrftoken') {
         CSRF = line[1];
+	SACSID = line[0];
       } else {
         SACSID = '';
         CSRF = '';
