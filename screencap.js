@@ -235,27 +235,27 @@ function portalinfoScreen(){
       },
       success: function () {
 	var clipRect = page.evaluate(function(){
-	  return document.querySelector('#portaldetails').getBoundingClientRect();
+	  return document.querySelector('#scrollwrapper').getBoundingClientRect();
 	});
 
 	page.clipRect = {
           top:    clipRect.top,
           left:   clipRect.left,
           width:  clipRect.width,
-          height: clipRect.bottom - clipRect.top
+          height: clipRect.height
 	}
         setTimeout(function() {s(filepath)}, "1000");
       },
       error: function () {
 	var clipRect = page.evaluate(function(){
-	  return document.querySelector('#portaldetails').getBoundingClientRect();
+	  return document.querySelector('#scrollwrapper').getBoundingClientRect();
 	});
 
 	page.clipRect = {
           top:    clipRect.top,
           left:   clipRect.left,
           width:  clipRect.width,
-          height: clipRect.bottom - clipRect.top
+          height: clipRect.height
         }
         setTimeout(function() {s(filepath)}, "1000");
       }
