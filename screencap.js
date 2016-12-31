@@ -238,7 +238,7 @@ function portalinfoScreen(){
 	  return document.querySelector('#sidebar').getBoundingClientRect();
 	});
 
-	page.set('clipRect', {
+	page.clipRect = {
           top:    clipRect.top,
           left:   clipRect.left,
           width:  clipRect.width,
@@ -251,7 +251,7 @@ function portalinfoScreen(){
 	  return document.querySelector('#sidebar').getBoundingClientRect();
 	});
 
-	page.set('clipRect', {
+	page.clipRect = {
           top:    clipRect.top,
           left:   clipRect.left,
           width:  clipRect.width,
