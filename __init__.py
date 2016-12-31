@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 def _initialise(bot):
-    plugins.register_user_command(["intel", "iitc", "active_iitcplugins"])
+    plugins.register_user_command(["intel", "iitc", "portalpic", "active_iitcplugins"])
     plugins.register_admin_command(["setintel", "show_iitcplugins", "set_iitcplugins"])
     _get_iitc_plugins(bot)
 
@@ -121,6 +121,62 @@ def setintel(bot, event, *args):
         html = "<i><b>{}</b> updated screenshot URL".format(event.user.full_name)
         yield from bot.coro_send_message(event.conv, html)
 
+def portalpic(bot, event, *args):
+    """get a screenshot of the portalInfo by URL."""
+
+    arguments = {}
+
+    if args:
+        if len(args) > 1:
+            url = ' '.join(str(i) for i in args)
+        else:
+            url = args[0]
+        if '"' in url:
+            url = url.replace('"', '')
+    else:
+        html = "<i><b>{}</b> No Arguments provided".format(event.user.full_name)
+        yield from bot.coro_send_message(event.conv, html)
+
+    if bot.config.exists(["intel_screenbot", "email"]):
+        if bot.config.exists(["intel_screenbot", "password"]):
+            email = bot.config.get_by_path(["intel_screenbot", "email"])
+            password = bot.config.get_by_path(["intel_screenbot", "password"])
+            arguments['email'] = email
+            arguments['password'] = password
+        else:
+            html = "<i><b>{}</b> No Intel password has been added to config. Unable to authenticate".format(event.user.full_name)
+            yield from bot.coro_send_message(event.conv, html)
+    else:
+        html = "<i><b>{}</b> No Intel Email/password has been added to config. Unable to authenticate".format(event.user.full_name)
+        yield from bot.coro_send_message(event.conv, html)
+
+    if url is None:
+        html = "<i><b>{}</b> No Portal URL has been set for screenshots.".format(event.user.full_name)
+        yield from bot.coro_send_message(event.conv, html)
+    else:
+        if re.match(r'(http(s)?:\/\/)', url):
+            yield from bot.coro_send_message(event.conv_id, "<i>Portal Info requested, please wait...</i>")
+            filepath = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
+            filename = filepath.split('/', filepath.count('/'))[-1]
+            args_filepath = tempfile.NamedTemporaryFile(prefix="args_{}".format(event.conv_id), suffix=".json", delete=False).name
+
+            arguments['url'] = url
+            arguments['filepath'] = filepath
+            arguments['screenshotfunction'] = "portalinfoScreen"
+
+            with open(args_filepath, 'w') as out:
+                out.write(json.dumps(arguments))
+
+            try:
+                loop = asyncio.get_event_loop()
+                image_data = yield from _screencap(url, args_filepath, filepath, filename, bot, event)
+            except Exception as e:
+                yield from bot.coro_send_message(event.conv_id, "<i>error getting screenshot</i>")
+                logger.exception("screencap failed".format(url))
+                return
+        else:
+            html = "<i><b>{}</b> No URL found in Arguments".format(event.user.full_name)
+            yield from bot.coro_send_message(event.conv, html)
 
 def intel(bot, event, *args):
     """get a screenshot of a search term or intel URL or the default intel URL of the hangout."""
@@ -195,6 +251,7 @@ def intel(bot, event, *args):
         arguments['url'] = url
         arguments['filepath'] = filepath
         arguments['maptype'] = "intel"
+        arguments['screenshotfunction'] = "map"
 
         with open(args_filepath, 'w') as out:
             out.write(json.dumps(arguments))
@@ -291,6 +348,7 @@ def iitc(bot, event, *args):
         arguments['url'] = url
         arguments['filepath'] = filepath
         arguments['maptype'] = "iitc"
+        arguments['screenshotfunction'] = "map"
 
         with open(args_filepath, 'w') as out:
             out.write(json.dumps(arguments))
