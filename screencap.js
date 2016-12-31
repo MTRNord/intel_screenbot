@@ -235,7 +235,7 @@ function portalinfoScreen(){
       },
       success: function () {
 	var clipRect = page.evaluate(function(){
-	  return document.querySelector('#sidebar').getBoundingClientRect();
+	  return document.querySelector('#portaldetails').getBoundingClientRect();
 	});
 
 	page.clipRect = {
@@ -248,7 +248,7 @@ function portalinfoScreen(){
       },
       error: function () {
 	var clipRect = page.evaluate(function(){
-	  return document.querySelector('#sidebar').getBoundingClientRect();
+	  return document.querySelector('#portaldetails').getBoundingClientRect();
 	});
 
 	page.clipRect = {
