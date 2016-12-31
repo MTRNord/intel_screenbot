@@ -221,7 +221,6 @@ function map(search){
 
 function portalinfoScreen(){
   setTimeout(function() {
-    page.viewportSize = { width: width, height: height };
     waitFor({
       timeout: 240000,
       check: function () {
@@ -262,8 +261,9 @@ function portalinfoScreen(){
         });  
         height = page.evaluate(function() {
           return document.getElementById('sidebar').clientHeight;
-        });
-        setTimeout(function() {s(filepath)}, "1000");
+        });	
+        page.viewportSize = { width: width, height: height };
+        setTimeout(function() {s(filepath)}, "1000");   
       },
       error: function () {
         page.evaluate(function() {
@@ -294,6 +294,7 @@ function portalinfoScreen(){
         height = page.evaluate(function() {
           return document.getElementById('sidebar').clientHeight;
         }); 
+        page.viewportSize = { width: width, height: height };
         setTimeout(function() {s(filepath)}, "1000");
       }
     });
