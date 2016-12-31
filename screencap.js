@@ -277,11 +277,11 @@ function afterLogin(url, search, mode) {
         storeCookies();
       }
       setupIITC()
-      if(screenshotfunction = "map"){
+      if(screenshotfunction == "map"){
         map(search);
-      }else if (screenshotfunction = "portalinfoScreen"){
+      }else if (screenshotfunction == "portalinfoScreen"){
         portalinfoScreen(file);
-      }else if (screenshotfunction = "portalinfoText"){
+      }else if (screenshotfunction == "portalinfoText"){
         portalinfoText();
       }
     }, "1000");
