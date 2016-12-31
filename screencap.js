@@ -261,7 +261,10 @@ function portalinfoScreen(){
         });  
         height = page.evaluate(function() {
           return document.getElementById('sidebar').clientHeight;
-        });	
+        });
+	page.evaluate(function() {
+          document.getElementById('sidebar').focus();
+        });
         page.viewportSize = { width: width, height: height };
         setTimeout(function() {s(filepath)}, "1000");   
       },
@@ -294,6 +297,9 @@ function portalinfoScreen(){
         height = page.evaluate(function() {
           return document.getElementById('sidebar').clientHeight;
         }); 
+	page.evaluate(function() {
+          document.getElementById('sidebar').focus();
+        });
         page.viewportSize = { width: width, height: height };
         setTimeout(function() {s(filepath)}, "1000");
       }
