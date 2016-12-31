@@ -234,73 +234,29 @@ function portalinfoScreen(){
         });
       },
       success: function () {
-        page.evaluate(function() {
-          (function($) {
-            $.fn.allBut = function(context) {
-              var target = this;
-              var otherList = $();
-              var processList = $(context || 'body').children();
-              while (processList.size() > 0) {
-                var cElem = processList.first();
-                processList = processList.slice(1);
-                if (cElem.filter(target).size() != target.size()) {
-                  if (cElem.has(target).size() > 0) {
-                    processList = processList.add(cElem.children());
-                  } else {
-                    otherList = otherList.add(cElem);
-                  }
-                }
-              }
-              return otherList;
-            }
-          })(jQuery);
-          $('#sidebar').allBut().hide();
-        });
-        width = page.evaluate(function() {
-          return document.getElementById('sidebar').clientWidth;
-        });  
-        height = page.evaluate(function() {
-          return document.getElementById('sidebar').clientHeight;
-        });
-	page.evaluate(function() {
-          document.getElementById('sidebar').focus();
-        });
-        page.viewportSize = { width: width, height: height };
-        setTimeout(function() {s(filepath)}, "1000");   
+	var clipRect = page.evaluate(function(){
+	  return document.querySelector('#sidebar').getBoundingClientRect();
+	});
+
+	page.clipRect = {
+	  top:    clipRect.top,
+	  left:   clipRect.left,
+	  width:  clipRect.width,
+	  height: clipRect.height
+	};
+        setTimeout(function() {s(filepath)}, "1000");
       },
       error: function () {
-        page.evaluate(function() {
-          (function($) {
-            $.fn.allBut = function(context) {
-              var target = this;
-              var otherList = $();
-              var processList = $(context || 'body').children();
-              while (processList.size() > 0) {
-                var cElem = processList.first();
-                processList = processList.slice(1);
-                if (cElem.filter(target).size() != target.size()) {
-                  if (cElem.has(target).size() > 0) {
-                    processList = processList.add(cElem.children());
-                  } else {
-                    otherList = otherList.add(cElem);
-                  }
-                }
-              }
-              return otherList;
-            }
-          })(jQuery);
-          $('#sidebar').allBut().hide();
-        });
-        width = page.evaluate(function() {
-          return document.getElementById('sidebar').clientWidth;
-        });  
-        height = page.evaluate(function() {
-          return document.getElementById('sidebar').clientHeight;
-        }); 
-	page.evaluate(function() {
-          document.getElementById('sidebar').focus();
-        });
-        page.viewportSize = { width: width, height: height };
+	var clipRect = page.evaluate(function(){
+	  return document.querySelector('#sidebar').getBoundingClientRect();
+	});
+
+	page.clipRect = {
+	  top:    clipRect.top,
+	  left:   clipRect.left,
+	  width:  clipRect.width,
+	  height: clipRect.height
+	};
         setTimeout(function() {s(filepath)}, "1000");
       }
     });
