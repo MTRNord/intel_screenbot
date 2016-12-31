@@ -181,10 +181,10 @@ def intel(bot, event, *args):
                 zoomlevel = zoomlevel_raw.group()
                 search = search.replace("z={}".format(zoomlevel),"")
                 if zoomlevel.isdigit():
-                    yield from bot.coro_send_message(event.conv_id, "<i>intel map is searching " + search + " and screenshooting at zoom level "+ zoomlevel + " as requested, please wait...</i>")
+                    yield from bot.coro_send_message(event.conv_id, "<i>searching " + search + " on intel map and screenshooting at zoom level "+ zoomlevel + " as requested, please wait...</i>")
                     arguments['zoomlevel'] = str(zoomlevel)
             else:
-                yield from bot.coro_send_message(event.conv_id, "<i>intel map is searching " + search + " and screenshooting as requested, please wait...</i>")
+                yield from bot.coro_send_message(event.conv_id, "<i>searching " + search + " on intel map and screenshooting as requested, please wait...</i>")
             url = 'https://www.ingress.com/intel'
 
         filepath = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
@@ -264,10 +264,10 @@ def iitc(bot, event, *args):
                 zoomlevel = zoomlevel_raw.group()
                 search = search.replace("z={}".format(zoomlevel),"")
                 if zoomlevel.isdigit():
-                    yield from bot.coro_send_message(event.conv_id, "<i>iitc map is searching " + search + " and screenshooting it at zoom level "+ zoomlevel + " as requested, please wait...</i>")
+                    yield from bot.coro_send_message(event.conv_id, "<i>searching " + search + " on iitc map and screenshooting it at zoom level "+ zoomlevel + " as requested, please wait...</i>")
                     arguments['zoomlevel'] = str(zoomlevel)
             else:
-                yield from bot.coro_send_message(event.conv_id, "<i>iitc map is searching " + search + " and screenshooting it as requested, please wait...</i>")
+                yield from bot.coro_send_message(event.conv_id, "<i>searching " + search + " on iitc map and and screenshooting it as requested, please wait...</i>")
             url = 'https://www.ingress.com/intel'
 
         filepath = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
