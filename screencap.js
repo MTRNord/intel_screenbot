@@ -239,7 +239,7 @@ function portalinfoScreen(){
 	});
 
 	var elementHeight = page.evaluate(function(){
-	  return document.querySelector('#sidebar').offsetHeight();
+	  return document.querySelector('#sidebar').offsetHeight;
 	});
 	      
 	page.clipRect = {
@@ -256,7 +256,7 @@ function portalinfoScreen(){
 	});
 
 	var elementHeight = page.evaluate(function(){
-	  return document.querySelector('#sidebar').offsetHeight();
+	  return document.querySelector('#sidebar').offsetHeight;
 	});
 	      
 	page.clipRect = {
