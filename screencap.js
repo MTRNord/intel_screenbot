@@ -219,7 +219,7 @@ function map(search){
   }, "1000");
 }
 
-function portalinfoScreen(file){
+function portalinfoScreen(){
   setTimeout(function() {
     page.evaluate(function() {
       (function($) {
@@ -250,7 +250,7 @@ function portalinfoScreen(file){
       return document.getElementById('sidebar').clientHeight;
     });
     page.viewportSize = { width: width, height: height };
-    setTimeout(function() {s(file)}, "1000");
+    setTimeout(function() {s(filepath)}, "1000");
   }, "1000");
 }
 
@@ -280,7 +280,7 @@ function afterLogin(url, search, mode) {
       if(screenshotfunction == "map"){
         map(search);
       }else if (screenshotfunction == "portalinfoScreen"){
-        portalinfoScreen(file);
+        portalinfoScreen();
       }else if (screenshotfunction == "portalinfoText"){
         portalinfoText();
       }
