@@ -238,12 +238,12 @@ function portalinfoScreen(){
 	  return document.querySelector('#sidebar').getBoundingClientRect();
 	});
 
-	page.clipRect = {
-	  top:    clipRect.top,
-	  left:   clipRect.left,
-	  width:  clipRect.width,
-	  height: clipRect.height
-	};
+	page.set('clipRect', {
+          top:    clipRect.top,
+          left:   clipRect.left,
+          width:  clipRect.width,
+          height: clipRect.height
+        });
         setTimeout(function() {s(filepath)}, "1000");
       },
       error: function () {
@@ -251,12 +251,12 @@ function portalinfoScreen(){
 	  return document.querySelector('#sidebar').getBoundingClientRect();
 	});
 
-	page.clipRect = {
-	  top:    clipRect.top,
-	  left:   clipRect.left,
-	  width:  clipRect.width,
-	  height: clipRect.height
-	};
+	page.set('clipRect', {
+          top:    clipRect.top,
+          left:   clipRect.left,
+          width:  clipRect.width,
+          height: clipRect.height
+        });
         setTimeout(function() {s(filepath)}, "1000");
       }
     });
