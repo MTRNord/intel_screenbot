@@ -277,7 +277,7 @@ function setupIITC(){
   loadIitcPlugin('https://static.iitc.me/build/release/plugins/canvas-render.user.js');
   page.evaluate(function(maptype) {
     localStorage['ingress.intelmap.layergroupdisplayed'] = JSON.stringify({
-      "Unclaimed Portals": false,
+      "Unclaimed/Placeholder Portals": false,
       "Level 1 Portals": true,
       "Level 2 Portals": true,
       "Level 3 Portals": true,
