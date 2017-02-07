@@ -237,6 +237,9 @@ function portalinfoScreen(){
 	var clipRect = page.evaluate(function(){
 	  return document.querySelector('#sidebar').getBoundingClientRect();
 	});
+	page.evaluate(function(){
+	  document.querySelector('#playerstat').style.display = 'none';
+	});
         setTimeout(function() {
 	  var elementHeight = page.evaluate(function(){
 	    return $("#sidebar").height();
