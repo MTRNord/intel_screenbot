@@ -239,6 +239,8 @@ function portalinfoScreen(){
 	});
 	page.evaluate(function(){
 	  document.querySelector('#playerstat').style.display = 'none';
+	  document.querySelector('#searchwrapper').style.display = 'none';
+	  document.querySelector('#redeem').style.display = 'none';
 	});
         setTimeout(function() {
 	  var elementHeight = page.evaluate(function(){
