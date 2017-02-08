@@ -280,7 +280,47 @@ function portalinfoScreen(){
 }
 
 function portalinfoText(){
-  
+  setTimeout(function() {
+    waitFor({
+      timeout: 240000,
+      check: function () {
+        return page.evaluate(function() {
+          if (document.querySelector('.map').textContent.indexOf('done') != -1) {
+            return true;
+          }else{
+            console.log('generateFakeOutput')
+            return false;
+          }
+        });
+      },
+      success: function () {
+        //Todo
+          var startTime = new Date().getTime();
+	  var startTime = new Date().getTime();
+	  var interval = setInterval(function(){
+	    if(new Date().getTime() - startTime > 5000){
+	      clearInterval(interval);
+	      phantom.exit(0);
+	      return;
+	    }
+	    console.log('doSomeOutput')
+	  }, 1000);
+      },
+      error: function () {
+	//TODO
+        var startTime = new Date().getTime();
+	  var startTime = new Date().getTime();
+	  var interval = setInterval(function(){
+	    if(new Date().getTime() - startTime > 5000){
+	      clearInterval(interval);
+	      phantom.exit(0);
+	      return;
+	    }
+	    console.log('doSomeOutput')
+	  }, 1000);
+      }
+    });
+  }, "1000");
 }
 
 function afterLogin(url, search, mode) {
