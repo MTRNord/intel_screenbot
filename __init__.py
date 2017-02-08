@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 def _initialise(bot):
-    plugins.register_user_command(["intel", "iitc", "portalpic", "active_iitcplugins"])
+    plugins.register_user_command(["intel", "iitc", "portalpic", "portalinfo", "active_iitcplugins"])
     plugins.register_admin_command(["setintel", "show_iitcplugins", "set_iitcplugins"])
     _get_iitc_plugins(bot)
 
