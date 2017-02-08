@@ -78,7 +78,7 @@ def _get_lines(shell_command):
     return p.returncode, output, True
 
 @asyncio.coroutine
-def _screencap(url, args_filepath, filepath, filename, bot, event):
+def _screencap(url, args_filepath, filepath, filename, bot, event, arguments):
     os.chmod(filepath, 0o666)
     loop = asyncio.get_event_loop()
     command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap.js "' + args_filepath + '"'
@@ -88,22 +88,24 @@ def _screencap(url, args_filepath, filepath, filename, bot, event):
 
     # read the resulting file into a byte array
     # yield from asyncio.sleep(10)
-    file_resource = yield from _open_file(filepath)
-    file_data = yield from loop.run_in_executor(None, file_resource.read)
-    image_data = yield from loop.run_in_executor(None, io.BytesIO, file_data)
-    if status:
-        try:
-            image_id = yield from bot._client.upload_image(image_data, filename=filename)
-            yield from bot._client.sendchatmessage(event.conv.id_, None, image_id=image_id)
-            os.unlink(filepath)
-            os.unlink(args_filepath)
-        except Exception as e:
-            os.unlink(filepath)
-            os.unlink(args_filepath)
-            logger.exception("upload failed: {}".format(url))
-            logger.exception("exception: {}".format(e))
-            yield from bot.coro_send_message(event.conv_id, "<i>error uploading screenshot</i>")
-
+    if (arguments['screenshotfunction'] != 'portalinfoText'):
+        file_resource = yield from _open_file(filepath)
+        file_data = yield from loop.run_in_executor(None, file_resource.read)
+        image_data = yield from loop.run_in_executor(None, io.BytesIO, file_data)
+        if status:
+            try:
+                image_id = yield from bot._client.upload_image(image_data, filename=filename)
+                yield from bot._client.sendchatmessage(event.conv.id_, None, image_id=image_id)
+                os.unlink(filepath)
+                os.unlink(args_filepath)
+            except Exception as e:
+                os.unlink(filepath)
+                os.unlink(args_filepath)
+                logger.exception("upload failed: {}".format(url))
+                logger.exception("exception: {}".format(e))
+                yield from bot.coro_send_message(event.conv_id, "<i>error uploading screenshot</i>")
+    else:
+        #TODO
 
 def setintel(bot, event, *args):
     """set url for current converation for the intel or iitc command.
@@ -178,6 +180,63 @@ def portalpic(bot, event, *args):
             html = "<i><b>{}</b> No URL found in Arguments".format(event.user.full_name)
             yield from bot.coro_send_message(event.conv, html)
 
+def portalinfo(bot, event, *args):
+    """get a of the portalInfo by URL."""
+
+    arguments = {}
+
+    if args:
+        if len(args) > 1:
+            url = ' '.join(str(i) for i in args)
+        else:
+            url = args[0]
+        if '"' in url:
+            url = url.replace('"', '')
+    else:
+        html = "<i><b>{}</b> No Arguments provided".format(event.user.full_name)
+        yield from bot.coro_send_message(event.conv, html)
+
+    if bot.config.exists(["intel_screenbot", "email"]):
+        if bot.config.exists(["intel_screenbot", "password"]):
+            email = bot.config.get_by_path(["intel_screenbot", "email"])
+            password = bot.config.get_by_path(["intel_screenbot", "password"])
+            arguments['email'] = email
+            arguments['password'] = password
+        else:
+            html = "<i><b>{}</b> No Intel password has been added to config. Unable to authenticate".format(event.user.full_name)
+            yield from bot.coro_send_message(event.conv, html)
+    else:
+        html = "<i><b>{}</b> No Intel Email/password has been added to config. Unable to authenticate".format(event.user.full_name)
+        yield from bot.coro_send_message(event.conv, html)
+
+    if url is None:
+        html = "<i><b>{}</b> No Portal URL has been set for portal Info.".format(event.user.full_name)
+        yield from bot.coro_send_message(event.conv, html)
+    else:
+        if re.match(r'(http(s)?:\/\/)', url):
+            yield from bot.coro_send_message(event.conv_id, "<i>Portal Info requested, please wait...</i>")
+            filepath = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
+            filename = filepath.split('/', filepath.count('/'))[-1]
+            args_filepath = tempfile.NamedTemporaryFile(prefix="args_{}".format(event.conv_id), suffix=".json", delete=False).name
+
+            arguments['url'] = url
+            arguments['filepath'] = filepath
+            arguments['screenshotfunction'] = "portalinfoText"
+
+            with open(args_filepath, 'w') as out:
+                out.write(json.dumps(arguments))
+
+            try:
+                loop = asyncio.get_event_loop()
+                image_data = yield from _screencap(url, args_filepath, filepath, filename, bot, event, arguments)
+            except Exception as e:
+                yield from bot.coro_send_message(event.conv_id, "<i>error getting screenshot</i>")
+                logger.exception("screencap failed".format(url))
+                return
+        else:
+            html = "<i><b>{}</b> No URL found in Arguments".format(event.user.full_name)
+            yield from bot.coro_send_message(event.conv, html)
+            
 def intel(bot, event, *args):
     """get a screenshot of a search term or intel URL or the default intel URL of the hangout."""
 
@@ -258,7 +317,7 @@ def intel(bot, event, *args):
             
         try:
             loop = asyncio.get_event_loop()
-            image_data = yield from _screencap(url, args_filepath, filepath, filename, bot, event)
+            image_data = yield from _screencap(url, args_filepath, filepath, filename, bot, event, arguments)
         except Exception as e:
             yield from bot.coro_send_message(event.conv_id, "<i>error getting screenshot</i>")
             logger.exception("screencap failed".format(url))
@@ -355,7 +414,7 @@ def iitc(bot, event, *args):
 
         try:
             loop = asyncio.get_event_loop()
-            image_data = yield from _screencap(url, args_filepath, filepath, filename, bot, event)
+            image_data = yield from _screencap(url, args_filepath, filepath, filename, bot, event, arguments)
         except Exception as e:
             yield from bot.coro_send_message(event.conv_id, "<i>error getting screenshot</i>")
             logger.exception("screencap failed".format(url))
