@@ -106,6 +106,7 @@ def _screencap(url, args_filepath, filepath, filename, bot, event, arguments):
                 yield from bot.coro_send_message(event.conv_id, "<i>error uploading screenshot</i>")
     else:
         #TODO
+        logger.info('TODO')
 
 def setintel(bot, event, *args):
     """set url for current converation for the intel or iitc command.
