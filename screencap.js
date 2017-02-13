@@ -324,7 +324,7 @@ function portalinfoText(){
 	var reso8 = page.evaluate(function(){
 	  return document.getElementById("resodetails").rows[3].cells[2].firstElementChild.getAttribute("title");
 	});
-	var text = PortalName + "</br></br><b>Resonator 1:</b></br>" + reso1 + "</br><b>Resonator 2:</b></br>" + reso2 + "</br><b>Resonator 3:</b></br>" + reso3 + "</br><b>Resonator 4:</b></br>" + reso4 + "</br><b>Resonator 5:</b></br>" + reso5 + "</br><b>Resonator 6:</b></br>" + reso6 + "</br><b>Resonator 7:</b></br>" + reso7 + "</br><b>Resonator 8:</b></br>" + reso8 
+	var text = PortalName + "<br /><br /><b>Resonator 1:</b><br />" + reso1 + "<br /><b>Resonator 2:</b><br />" + reso2 + "<br /><b>Resonator 3:</b><br />" + reso3 + "<br /><b>Resonator 4:</b><br />" + reso4 + "<br /><b>Resonator 5:</b><br />" + reso5 + "<br /><b>Resonator 6:</b><br />" + reso6 + "<br /><b>Resonator 7:</b><br />" + reso7 + "<br /><b>Resonator 8:</b><br />" + reso8 
 	fs.write(portalinfoResponse, text, 'w');
         var startTime = new Date().getTime();
 	var startTime = new Date().getTime();
@@ -365,7 +365,7 @@ function portalinfoText(){
 	var reso8 = page.evaluate(function(){
 	  return document.getElementById("resodetails").rows[3].cells[2].firstElementChild.getAttribute("title");
 	});
-	var text = PortalName + "</br></br><b>Resonator 1:</b></br>" + reso1 + "</br><b>Resonator 2:</b></br>" + reso2 + "</br><b>Resonator 3:</b></br>" + reso3 + "</br><b>Resonator 4:</b></br>" + reso4 + "</br><b>Resonator 5:</b></br>" + reso5 + "</br><b>Resonator 6:</b></br>" + reso6 + "</br><b>Resonator 7:</b></br>" + reso7 + "</br><b>Resonator 8:</b></br>" + reso8 
+	var text = PortalName + "<br /><br /><b>Resonator 1:</b><br />" + reso1 + "<br /><b>Resonator 2:</b><br />" + reso2 + "<br /><b>Resonator 3:</b><br />" + reso3 + "<br /><b>Resonator 4:</b><br />" + reso4 + "<br /><b>Resonator 5:</b><br />" + reso5 + "<br /><b>Resonator 6:</b><br />" + reso6 + "<br /><b>Resonator 7:</b><br />" + reso7 + "<br /><b>Resonator 8:</b><br />" + reso8 
 	fs.write(portalinfoResponse, text, 'w');
         var startTime = new Date().getTime();
         var startTime = new Date().getTime();
