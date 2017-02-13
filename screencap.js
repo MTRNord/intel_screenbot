@@ -288,7 +288,7 @@ function portalinfoText(){
       timeout: 240000,
       check: function () {
         return page.evaluate(function() {
-          if (document.querySelector('.map').textContent.indexOf('done') != -1) {
+          if ((document.querySelector('.map').textContent.indexOf('done') != -1) || (document.getElementById("resodetails").rows[0]))  {
             return true;
           }else{
             console.log('generateFakeOutput')
