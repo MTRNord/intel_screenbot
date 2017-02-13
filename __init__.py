@@ -115,7 +115,10 @@ def _screencap(url, args_filepath, filepath, filename, bot, event, arguments):
         if status:
             response_file = yield from _open_file(arguments['portalinfoResponse'], 'r')
             response = yield from readline(response_file)
-            yield from bot.coro_send_message(event.conv.id_, '{!r}'.format(response))
+            yield from bot.coro_send_message(event.conv.id_, response.replace("'", ""))
+            os.unlink(filepath)
+            os.unlink(args_filepath)
+            os.unlink(arguments['portalinfoResponse'])
 
 def setintel(bot, event, *args):
     """set url for current converation for the intel or iitc command.
