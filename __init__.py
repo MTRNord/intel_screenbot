@@ -15,8 +15,8 @@ def _initialise(bot):
 
 
 @asyncio.coroutine
-def _open_file(name):
-    return open(name, 'rb')
+def _open_file(name, otype):
+    return open(name, otype)
 
 @asyncio.coroutine
 def readline(f):
@@ -96,7 +96,7 @@ def _screencap(url, args_filepath, filepath, filename, bot, event, arguments):
     # read the resulting file into a byte array
     # yield from asyncio.sleep(10)
     if (arguments['screenshotfunction'] != 'portalinfoText'):
-        file_resource = yield from _open_file(filepath)
+        file_resource = yield from _open_file(filepath, 'rb')
         file_data = yield from loop.run_in_executor(None, file_resource.read)
         image_data = yield from loop.run_in_executor(None, io.BytesIO, file_data)
         if status:
@@ -113,7 +113,8 @@ def _screencap(url, args_filepath, filepath, filename, bot, event, arguments):
                 yield from bot.coro_send_message(event.conv_id, "<i>error uploading screenshot</i>")
     else:
         if status:
-            response = yield from readline(arguments['portalinfoResponse'])
+            response_file = yield from _open_file(arguments['portalinfoResponse'], 'r')
+            response = yield from readline(response_file)
             logger.info('Got: {!r}'.format(response))
             yield from bot.coro_send_message(event.conv.id_, '{!r}'.format(response))
 
