@@ -368,7 +368,7 @@ function portalinfoText(){
 	});
 	var text = PortalName.replace(/(?:\r\n|\r|\n)/g, '<br />').replace(/(?:\t)/g, ' ') + "<br /><br /><b>Resonator 1:</b><br />" + reso1.replace(/(?:\r\n|\r|\n)/g, '<br />').replace(/(?:\t)/g, ' ') + "<br /><b>Resonator 2:</b><br />" + reso2.replace(/(?:\r\n|\r|\n)/g, '<br />').replace(/(?:\t)/g, ' ') + "<br /><b>Resonator 3:</b><br />" + reso3.replace(/(?:\r\n|\r|\n)/g, '<br />').replace(/(?:\t)/g, ' ') + "<br /><b>Resonator 4:</b><br />" + reso4.replace(/(?:\r\n|\r|\n)/g, '<br />').replace(/(?:\t)/g, ' ') + "<br /><b>Resonator 5:</b><br />" + reso5.replace(/(?:\r\n|\r|\n)/g, '<br />').replace(/(?:\t)/g, ' ') + "<br /><b>Resonator 6:</b><br />" + reso6.replace(/(?:\r\n|\r|\n)/g, '<br />').replace(/(?:\t)/g, ' ') + "<br /><b>Resonator 7:</b><br />" + reso7.replace(/(?:\r\n|\r|\n)/g, '<br />').replace(/(?:\t)/g, ' ') + "<br /><b>Resonator 8:</b><br />" + reso8.replace(/(?:\r\n|\r|\n)/g, '<br />').replace(/(?:\t)/g, ' ') 
 	console.log(text)
-	fs.write(portalinfoResponse, text, 'w');
+	fs.write(portalinfoResponse, text.replace(/'/g, ''), 'w');
         var startTime = new Date().getTime();
         var startTime = new Date().getTime();
         var interval = setInterval(function(){
