@@ -23,6 +23,9 @@ if (args.length === 1) {
   var user = arguments['email']
   var pass = arguments['password']
   var screenshotfunction = arguments['screenshotfunction']
+  if(screenshotfunction == "portalinfoText"){
+    var portalinfoResponse = arguments['portalinfoResponse']
+  }
 }
 
 function loadCookies(callback) {
@@ -294,30 +297,86 @@ function portalinfoText(){
         });
       },
       success: function () {
-        //Todo
-          var startTime = new Date().getTime();
-	  var startTime = new Date().getTime();
-	  var interval = setInterval(function(){
-	    if(new Date().getTime() - startTime > 5000){
-	      clearInterval(interval);
-	      phantom.exit(0);
-	      return;
-	    }
-	    console.log('doSomeOutput')
-	  }, 1000);
+	var PortalName = page.evaluate(function(){
+	  return document.getElementById("portaldetails").getElementsByClassName("title")[0].innerHTML;
+	});
+	var reso1 = page.evaluate(function(){
+	  return document.getElementById("resodetails").rows[0].cells[1].firstElementChild.getAttribute("title");
+	});
+	var reso2 = page.evaluate(function(){
+	  return document.getElementById("resodetails").rows[0].cells[2].firstElementChild.getAttribute("title");
+	});
+	var reso3 = page.evaluate(function(){
+	  return document.getElementById("resodetails").rows[1].cells[1].firstElementChild.getAttribute("title");
+	});
+	var reso4 = page.evaluate(function(){
+	  return document.getElementById("resodetails").rows[1].cells[2].firstElementChild.getAttribute("title");
+	});
+	var reso5 = page.evaluate(function(){
+	  return document.getElementById("resodetails").rows[2].cells[1].firstElementChild.getAttribute("title");
+	});
+	var reso6 = page.evaluate(function(){
+	  return document.getElementById("resodetails").rows[2].cells[2].firstElementChild.getAttribute("title");
+	});
+	var reso7 = page.evaluate(function(){
+	  return document.getElementById("resodetails").rows[3].cells[1].firstElementChild.getAttribute("title");
+	});
+	var reso8 = page.evaluate(function(){
+	  return document.getElementById("resodetails").rows[3].cells[2].firstElementChild.getAttribute("title");
+	});
+	var text = PortalName + "</br></br><b>Resonator 1:</b></br>" + reso1 + "</br><b>Resonator 2:</b></br>" + reso2 + "</br><b>Resonator 3:</b></br>" + reso3 + "</br><b>Resonator 4:</b></br>" + reso4 + "</br><b>Resonator 5:</b></br>" + reso5 + "</br><b>Resonator 6:</b></br>" + reso6 + "</br><b>Resonator 7:</b></br>" + reso7 + "</br><b>Resonator 8:</b></br>" + reso8 
+	fs.write(portalinfoResponse, text, 'w');
+        var startTime = new Date().getTime();
+	var startTime = new Date().getTime();
+	var interval = setInterval(function(){
+	  if(new Date().getTime() - startTime > 5000){
+	    clearInterval(interval);
+	    phantom.exit(0);
+	    return;
+	  }
+	  console.log('doSomeOutput')
+	}, 1000);
       },
       error: function () {
-	//TODO
+	var PortalName = page.evaluate(function(){
+	  return document.getElementById("portaldetails").getElementsByClassName("title")[0].innerHTML;
+	});
+	var reso1 = page.evaluate(function(){
+	  return document.getElementById("resodetails").rows[0].cells[1].firstElementChild.getAttribute("title");
+	});
+	var reso2 = page.evaluate(function(){
+	  return document.getElementById("resodetails").rows[0].cells[2].firstElementChild.getAttribute("title");
+	});
+	var reso3 = page.evaluate(function(){
+	  return document.getElementById("resodetails").rows[1].cells[1].firstElementChild.getAttribute("title");
+	});
+	var reso4 = page.evaluate(function(){
+	  return document.getElementById("resodetails").rows[1].cells[2].firstElementChild.getAttribute("title");
+	});
+	var reso5 = page.evaluate(function(){
+	  return document.getElementById("resodetails").rows[2].cells[1].firstElementChild.getAttribute("title");
+	});
+	var reso6 = page.evaluate(function(){
+	  return document.getElementById("resodetails").rows[2].cells[2].firstElementChild.getAttribute("title");
+	});
+	var reso7 = page.evaluate(function(){
+	  return document.getElementById("resodetails").rows[3].cells[1].firstElementChild.getAttribute("title");
+	});
+	var reso8 = page.evaluate(function(){
+	  return document.getElementById("resodetails").rows[3].cells[2].firstElementChild.getAttribute("title");
+	});
+	var text = PortalName + "</br></br><b>Resonator 1:</b></br>" + reso1 + "</br><b>Resonator 2:</b></br>" + reso2 + "</br><b>Resonator 3:</b></br>" + reso3 + "</br><b>Resonator 4:</b></br>" + reso4 + "</br><b>Resonator 5:</b></br>" + reso5 + "</br><b>Resonator 6:</b></br>" + reso6 + "</br><b>Resonator 7:</b></br>" + reso7 + "</br><b>Resonator 8:</b></br>" + reso8 
+	fs.write(portalinfoResponse, text, 'w');
         var startTime = new Date().getTime();
-	  var startTime = new Date().getTime();
-	  var interval = setInterval(function(){
-	    if(new Date().getTime() - startTime > 5000){
-	      clearInterval(interval);
-	      phantom.exit(0);
-	      return;
-	    }
-	    console.log('doSomeOutput')
-	  }, 1000);
+        var startTime = new Date().getTime();
+        var interval = setInterval(function(){
+          if(new Date().getTime() - startTime > 5000){
+            clearInterval(interval);
+            phantom.exit(0);
+            return;
+          }
+          console.log('doSomeOutput')
+        }, 1000);
       }
     });
   }, "1000");
