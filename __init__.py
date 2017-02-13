@@ -115,7 +115,6 @@ def _screencap(url, args_filepath, filepath, filename, bot, event, arguments):
         if status:
             response_file = yield from _open_file(arguments['portalinfoResponse'], 'r')
             response = yield from readline(response_file)
-            logger.info('Got: {!r}'.format(response))
             yield from bot.coro_send_message(event.conv.id_, '{!r}'.format(response))
 
 def setintel(bot, event, *args):
