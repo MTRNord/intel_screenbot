@@ -18,6 +18,13 @@ def _initialise(bot):
 def _open_file(name):
     return open(name, 'rb')
 
+@asyncio.coroutine
+def readline(f):
+    while True:
+        data = f.readline()
+        if data:
+            return data
+
 def _parse_onlineRepos(url, ext=''):
     page = requests.get(url).text
     if 'gitlab.com' in url:
@@ -104,9 +111,11 @@ def _screencap(url, args_filepath, filepath, filename, bot, event, arguments):
                 logger.exception("upload failed: {}".format(url))
                 logger.exception("exception: {}".format(e))
                 yield from bot.coro_send_message(event.conv_id, "<i>error uploading screenshot</i>")
-    elif(arguments['screenshotfunction'] == 'portalinfoText'):
-        response = _open_file(arguments['portalinfoResponse'])
-        yield from bot.coro_send_message(event.conv.id_, response)
+    else:
+        if status:
+            response = yield from readline(arguments['portalinfoResponse'])
+            logger.info('Got: {!r}'.format(response))
+            yield from bot.coro_send_message(event.conv.id_, '{!r}'.format(response))
 
 def setintel(bot, event, *args):
     """set url for current converation for the intel or iitc command.
