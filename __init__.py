@@ -104,9 +104,9 @@ def _screencap(url, args_filepath, filepath, filename, bot, event, arguments):
                 logger.exception("upload failed: {}".format(url))
                 logger.exception("exception: {}".format(e))
                 yield from bot.coro_send_message(event.conv_id, "<i>error uploading screenshot</i>")
-    else:
-        #TODO
-        logger.info('TODO')
+    elif(arguments['screenshotfunction'] == 'portalinfoText'):
+        response = _open_file(arguments['portalinfoResponse'])
+        yield from bot.coro_send_message(event.conv.id_, response['infos'])
 
 def setintel(bot, event, *args):
     """set url for current converation for the intel or iitc command.
@@ -217,12 +217,14 @@ def portalinfo(bot, event, *args):
         if re.match(r'(http(s)?:\/\/)', url):
             yield from bot.coro_send_message(event.conv_id, "<i>Portal Info requested, please wait...</i>")
             filepath = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
+            portalinfoResponse = tempfile.NamedTemporaryFile(prefix="response_{}".format(event.conv_id), delete=False).name
             filename = filepath.split('/', filepath.count('/'))[-1]
             args_filepath = tempfile.NamedTemporaryFile(prefix="args_{}".format(event.conv_id), suffix=".json", delete=False).name
 
             arguments['url'] = url
             arguments['filepath'] = filepath
             arguments['screenshotfunction'] = "portalinfoText"
+            arguments['portalinfoResponse'] = portalinfoResponse
 
             with open(args_filepath, 'w') as out:
                 out.write(json.dumps(arguments))
