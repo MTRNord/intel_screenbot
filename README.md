@@ -19,10 +19,10 @@ To install the plugin you need to:
 
 ## Configuration with Email Password
 
-**IMPORTANT: DO NOT USE YOUR MAIN ACCOUNT! I AM NOT RESPONSIBLE IF YOU ACCOUNT GETS BANNED! USE AT YOUR OWN RISK**
+**IMPORTANT: DO NOT USE YOUR MAIN ACCOUNT! I AM NOT RESPONSIBLE IF YOUR ACCOUNT GETS BANNED! USE AT YOUR OWN RISK**
 
-*Note DON'T set cookies up when using emil/password*
-For using the Intel Screenbot you need to add the following to the config.json:
+*Note: DON'T set cookies up when using email/password*<br \><br \>
+For using the Intel Screenbot you need to add the following json-code to the config.json:
 
 ```
  "intel_screenbot": {
@@ -34,8 +34,8 @@ For using the Intel Screenbot you need to add the following to the config.json:
  }
 ```  
 
-According to the official INSTALL Documention of the hangoutbot you will find the config.json in `/<username>/.local/share/hangupsbot/`
-(NOTE! add an comma behind the last element of the config.json and add it befor the outer element closes)
+According to the official INSTALL Documention of the hangoutbot you will find the config.json in `/<username>/.local/share/hangupsbot/` <br \>
+(NOTE! add an comma behind the last element of the config.json and add it before the outer element closes)
 
 Also you need to add `intel_screenbot` to the plugins.
 
@@ -86,9 +86,15 @@ Also you need to add `intel_screenbot` to the plugins.
 * If no `<url>` is supplied, use the default screenshot URL (or reply with an error if no URL is set)
 * `z=` lets you change the zoomlevel of the map
 
+`/portalpic <url>`
+* Makes a screenshot of the Portalinfo of the defined portal.
+
+`/portalinfo <url>`
+* Gives you a text version of the most important Portal Information. (Pretty long!)
+
 ## PhantomJS Installation
 
-Only tested:
+Only tested way to install:
 
 ```
 wget https://cnpmjs.org/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2
