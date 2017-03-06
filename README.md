@@ -8,6 +8,9 @@ Requires: **[hangoutsbot](https://github.com/hangoutsbot/hangoutsbot)**
 
 Get and post a screenshot of the Intel Map.
 
+## Known Bugs
+- Currently portalinfo seems to be 50% of the times broken. It will be fixed in the ongoing rewrite.
+
 ## Install
 To install the plugin you need to:
 
