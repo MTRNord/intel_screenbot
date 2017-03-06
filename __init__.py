@@ -88,14 +88,20 @@ def _get_lines(shell_command):
 def _screencap(url, args_filepath, filepath, filename, bot, event, arguments):
     os.chmod(filepath, 0o666)
     loop = asyncio.get_event_loop()
-    command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap.js "' + args_filepath + '"'
-    task = _get_lines(command)
-    task = asyncio.wait_for(task, 420.0)
-    exitcode, output, status = yield from task
 
     # read the resulting file into a byte array
     # yield from asyncio.sleep(10)
     if (arguments['screenshotfunction'] != 'portalinfoText'):
+        if arguments['screenshotfunction'] == 'portalinfoScreen':
+            command = 'phantomjs hangupsbot/plugins/intel_screenbot/screencap.js "' + args_filepath + '"'
+            task = _get_lines(command)
+            task = asyncio.wait_for(task, 420.0)
+            exitcode, output, status = yield from task
+        else:
+            command = 'phantomjs hangupsbot/plugins/intel_screenbot/map.js "' + args_filepath + '"'
+            task = _get_lines(command)
+            task = asyncio.wait_for(task, 420.0)
+            exitcode, output, status = yield from task
         file_resource = yield from _open_file(filepath, 'rb')
         file_data = yield from loop.run_in_executor(None, file_resource.read)
         image_data = yield from loop.run_in_executor(None, io.BytesIO, file_data)
@@ -112,6 +118,10 @@ def _screencap(url, args_filepath, filepath, filename, bot, event, arguments):
                 logger.exception("exception: {}".format(e))
                 yield from bot.coro_send_message(event.conv_id, "<i>error uploading screenshot</i>")
     else:
+        command = 'phantomjs hangupsbot/plugins/intel_screenbot/portalinfo.js "' + args_filepath + '"'
+        task = _get_lines(command)
+        task = asyncio.wait_for(task, 420.0)
+        exitcode, output, status = yield from task
         if status:
             response_file = yield from _open_file(arguments['portalinfoResponse'], 'r')
             response = yield from readline(response_file)
@@ -123,7 +133,7 @@ def _screencap(url, args_filepath, filepath, filename, bot, event, arguments):
 def setintel(bot, event, *args):
     """set url for current converation for the intel or iitc command.
     use /bot clearintel to clear the previous url before setting a new one."""
-    
+
     url = bot.conversation_memory_get(event.conv_id, 'IntelURL')
     if url is None:
         bot.conversation_memory_set(event.conv_id, 'IntelURL', ''.join(args))
@@ -176,7 +186,7 @@ def portalpic(bot, event, *args):
             args_filepath = tempfile.NamedTemporaryFile(prefix="args_{}".format(event.conv_id), suffix=".json", delete=False).name
 
             arguments['url'] = url
-            arguments['filepath'] = filepath
+            arguments['outputfile'] = filepath
             arguments['screenshotfunction'] = "portalinfoScreen"
 
             with open(args_filepath, 'w') as out:
@@ -234,7 +244,7 @@ def portalinfo(bot, event, *args):
             args_filepath = tempfile.NamedTemporaryFile(prefix="args_{}".format(event.conv_id), suffix=".json", delete=False).name
 
             arguments['url'] = url
-            arguments['filepath'] = filepath
+            arguments['outputfile'] = filepath
             arguments['screenshotfunction'] = "portalinfoText"
             arguments['portalinfoResponse'] = portalinfoResponse
 
@@ -251,7 +261,7 @@ def portalinfo(bot, event, *args):
         else:
             html = "<i><b>{}</b> No URL found in Arguments".format(event.user.full_name)
             yield from bot.coro_send_message(event.conv, html)
-            
+
 def intel(bot, event, *args):
     """get a screenshot of a search term or intel URL or the default intel URL of the hangout."""
 
@@ -323,13 +333,13 @@ def intel(bot, event, *args):
 
         arguments['search'] = search
         arguments['url'] = url
-        arguments['filepath'] = filepath
+        arguments['outputfile'] = filepath
         arguments['maptype'] = "intel"
         arguments['screenshotfunction'] = "map"
 
         with open(args_filepath, 'w') as out:
             out.write(json.dumps(arguments))
-            
+
         try:
             loop = asyncio.get_event_loop()
             image_data = yield from _screencap(url, args_filepath, filepath, filename, bot, event, arguments)

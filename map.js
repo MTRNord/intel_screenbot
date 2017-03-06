@@ -13,7 +13,7 @@ window.addEventListener("auth_completed", function () {
     page.viewportSize = {width: '1280', height: '720'};
 
     page.onCallback = function () {
-        page.render(scriptArgs.Outputfile);
+        page.render(scriptArgs.outputfile);
 
         /* Prevent Python bug */
         var startTime = new Date().getTime();
@@ -28,7 +28,7 @@ window.addEventListener("auth_completed", function () {
         }, 1000);
     };
 
-    page.open(scriptArgs.search, function (status) {
+    page.open(scriptArgs.url, function (status) {
         if (status !== 'success') {
             console.output("Unable to connect to intel");
             phantom.exit();
