@@ -170,7 +170,7 @@ def portalpic(bot, event, *args):
         yield from bot.coro_send_message(event.conv, html)
     else:
         if re.match(r'(http(s)?:\/\/)', url):
-            yield from bot.coro_send_message(event.conv_id, "<i>Portal Info requested, please wait...</i>")
+            yield from bot.coro_send_message(event.conv_id, "<i>Portal Picture requested, please wait...</i>")
             filepath = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
             filename = filepath.split('/', filepath.count('/'))[-1]
             args_filepath = tempfile.NamedTemporaryFile(prefix="args_{}".format(event.conv_id), suffix=".json", delete=False).name
@@ -245,8 +245,8 @@ def portalinfo(bot, event, *args):
                 loop = asyncio.get_event_loop()
                 image_data = yield from _screencap(url, args_filepath, filepath, filename, bot, event, arguments)
             except Exception as e:
-                yield from bot.coro_send_message(event.conv_id, "<i>error getting screenshot</i>")
-                logger.exception("screencap failed".format(url))
+                yield from bot.coro_send_message(event.conv_id, "<i>error getting infos</i>")
+                logger.exception("getting infos failed".format(url))
                 return
         else:
             html = "<i><b>{}</b> No URL found in Arguments".format(event.user.full_name)
