@@ -13,6 +13,7 @@ window.addEventListener("auth_completed", function () {
     page.viewportSize = {width: '1280', height: '720'};
 
     page.onCallback = function () {
+        hideDebris();
         page.render(scriptArgs.outputfile);
 
         /* Prevent Python bug */
@@ -37,7 +38,6 @@ window.addEventListener("auth_completed", function () {
             console.output("Sign on not working");
             phantom.exit();
         }
-        hideDebris();
         page.evaluate(function (maptype) {
             localStorage['ingress.intelmap.layergroupdisplayed'] = JSON.stringify({
               "Unclaimed Portals": false,

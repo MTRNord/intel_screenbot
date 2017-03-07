@@ -17,7 +17,7 @@ window.addEventListener("auth_completed", function () {
         phantom.exit();
     };
 
-    page.open(scriptArgs.search, function (status) {
+    page.open(scriptArgs.url, function (status) {
         if (status !== 'success') {
             console.output("Unable to connect to intel");
             phantom.exit();
