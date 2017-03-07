@@ -283,26 +283,25 @@ var fs = require('fs'),
     hideDebris = function() {
       /*Todo check if it worked */
       page.evaluate(function() {
-        function isHidden(el) {
-            var style = window.getComputedStyle(el);
-            return (style.display === 'none')
-        }
         var chat = document.querySelector('#chat');
         var chatcontrols = document.querySelector('#chatcontrols');
         var chatinput = document.querySelector('#chatinput');
         var updatestatus = document.querySelector('#updatestatus');
         var sidebartoggle = document.querySelector('#sidebartoggle');
         var scrollwrapper = document.querySelector('#scrollwrapper');
+        var controlContainer = document.querySelector('.leaflet-control-container');
+        var highlight_select = document.querySelector('#portal_highlight_select');
+        var chat = document.querySelector('#chat');
 
         if (chat)         {chat.style.display = 'none';}
         if (chatcontrols) {chatcontrols.tyle.display = 'none';}
         if (chatinput)    {chatinput.style.display = 'none';}
         if (updatestatus) {updatestatus.style.display = 'none';}
         if (sidebartoggle){sidebartoggle.style.display = 'none';}
-        if (scrollwrapper){document.querySelector('#scrollwrapper').style.display = 'none';}
-        if (document.querySelector('.leaflet-control-container')) {document.querySelector('.leaflet-control-container').style.display = 'none';}
-        if (document.querySelector('#portal_highlight_select')) {document.querySelector('#portal_highlight_select').style.display = 'none';}
-        if (isHidden(document.querySelector('#chat')))
+        if (scrollwrapper){scrollwrapper.style.display = 'none';}
+        if (controlContainer) {controlContainer.style.display = 'none';}
+        if (highlight_select) {highlight_select.style.display = 'none';}
+        if (chat) {chat.style.display = 'none';}
       });
     },
     loadIitcPlugin = function(src) {
