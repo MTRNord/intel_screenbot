@@ -76,6 +76,7 @@ var fs = require('fs'),
             fs.remove(cookieFileName);
         }
         console.log("Loading intel to clean local storage");
+        page.settings.userAgent = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-US; rv:1.9.1b3) Gecko/20090305 Firefox/3.1b3 GTB5';
         page.open('https://www.ingress.com/intel', function (status) {
             if (status !== 'success') {
                 console.log("Intel is down");
@@ -85,6 +86,7 @@ var fs = require('fs'),
                 localStorage.clear();
             });
             console.log("Loading google login page");
+            page.settings.userAgent = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-US; rv:1.9.1b3) Gecko/20090305 Firefox/3.1b3 GTB5';
             page.open('https://www.google.com/accounts/ServiceLogin?service=ah&passive=true&continue=https://appengine.google.com/_ah/conflogin%3Fcontinue%3Dhttps://www.ingress.com/intel&ltmpl=', function () {
                 googleLoginStep1(email, password, cookieFileName);
             });
