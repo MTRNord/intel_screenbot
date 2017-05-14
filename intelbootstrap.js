@@ -14,21 +14,22 @@ var fs = require('fs'),
     loginTimeout = 5000,
     cookiesLoaded = false,
 
-    log = (function (original_console) {
-        var padLeft = function (str) {
-                var toReturn = '' + str, length = 2;
+    log = (function(original_console) {
+        var padLeft = function(str) {
+                var toReturn = '' + str,
+                    length = 2;
                 while (toReturn.length < length) {
                     toReturn = '0' + toReturn;
                 }
                 return toReturn;
             },
-            timestamp = function () {
+            timestamp = function() {
                 var time = new Date();
                 return padLeft(time.getHours()) + ":" + padLeft(time.getMinutes()) + ':' + padLeft(time.getSeconds()) + ": ";
             },
             self = {
                 logEnabled: false,
-                log: function (message) {
+                log: function(message) {
                     if (self.logEnabled) {
                         self.timedLog(message);
                     }
@@ -36,14 +37,14 @@ var fs = require('fs'),
                 timedLog: function(message) {
                     self.output(timestamp() + message);
                 },
-                output: function (message) {
+                output: function(message) {
                     original_console.log(message);
                 }
             };
         return self;
     })(console),
 
-    loadScriptArguments = function (argumentsFileName) {
+    loadScriptArguments = function(argumentsFileName) {
         var args = JSON.parse(fs.read(argumentsFileName));
         if (!args) {
             console.log("Invalid script args file");
@@ -65,35 +66,37 @@ var fs = require('fs'),
         return true;
     },
 
-    login = function (email, password, cookieFileName) {
+    login = function(email, password, cookieFileName) {
         if (!loadCookies(cookieFileName)) {
             doCleanLogin(email, password, cookieFileName)
         }
     },
 
-    doCleanLogin = function (email, password, cookieFileName) {
+    doCleanLogin = function(email, password, cookieFileName) {
         if (fs.exists(cookieFileName)) {
             fs.remove(cookieFileName);
         }
         console.log("Loading intel to clean local storage");
         page.settings.userAgent = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-US; rv:1.9.1b3) Gecko/20090305 Firefox/3.1b3 GTB5';
-        page.open('https://www.ingress.com/intel', function (status) {
+        page.open('https://www.ingress.com/intel', function(status) {
             if (status !== 'success') {
                 console.log("Intel is down");
                 phantom.exit();
             }
-            page.evaluate(function () {
+            page.evaluate(function() {
                 localStorage.clear();
             });
             console.log("Loading google login page");
-            page.settings.userAgent = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-US; rv:1.9.1b3) Gecko/20090305 Firefox/3.1b3 GTB5';
-            page.open('https://www.google.com/accounts/ServiceLogin?service=ah&passive=true&continue=https://appengine.google.com/_ah/conflogin%3Fcontinue%3Dhttps://www.ingress.com/intel&ltmpl=', function () {
+            var link = page.evaluate(function() {
+                return document.getElementsByTagName('a')[0].href;
+            });
+            page.open(link, function() {
                 googleLoginStep1(email, password, cookieFileName);
             });
         });
     },
 
-    googleLoginStep1 = function (email, password, cookieFileName) {
+    googleLoginStep1 = function(email, password, cookieFileName) {
         console.log("Google login loaded");
         if (document.querySelector('#timeoutError')) {
             console.log("Timeout error. Trying again.");
@@ -103,76 +106,82 @@ var fs = require('fs'),
         waitFor({
             timeout: loginTimeout * 2,
             interval: 500,
-            check: function () {
-                return page.evaluate(function () {
+            check: function() {
+                return page.evaluate(function() {
                     return !!(document.querySelector('#gaia_loginform'));
                 });
             },
-            error: function () {
+            error: function() {
                 phantom.exit();
             },
-            success: function () {
+            success: function() {
                 googleLoginStep2(email, password, cookieFileName);
             }
         })
     },
 
-    googleLoginStep2 = function (email, password, cookieFileName) {
-        page.evaluate(function (l) {
+    googleLoginStep2 = function(email, password, cookieFileName) {
+        page.evaluate(function(l) {
             document.getElementById('Email').value = l;
         }, email);
-        page.evaluate(function () {
+        page.evaluate(function() {
             document.querySelector("#next").click();
         });
         console.log("Sent email to google");
         waitFor({
             timeout: loginTimeout * 2,
             interval: 500,
-            check: function () {
-                return page.evaluate(function () {
+            check: function() {
+                return page.evaluate(function() {
                     return !!(document.getElementById('Passwd'));
                 });
             },
-            error: function () {
+            error: function() {
                 phantom.exit();
             },
-            success: function () {
+            success: function() {
                 googleLoginStep3(email, password, cookieFileName);
             }
         });
     },
 
-    googleLoginStep3 = function (email, password, cookieFileName) {
+    googleLoginStep3 = function(email, password, cookieFileName) {
         var currentUrl = page.url;
-        page.evaluate(function (p) {
+        page.evaluate(function(p) {
             document.getElementById('Passwd').value = p;
         }, password);
         if (document.querySelector("#next")) {
-            page.evaluate(function () {
+            page.evaluate(function() {
                 document.querySelector("#next").click();
             });
+            page.evaluate(function() {
+                document.getElementById('gaia_loginform').submit();
+            });
         } else {
-            page.evaluate(function () {
+            page.evaluate(function() {
                 document.querySelector("#signIn").click();
+            });
+            page.evaluate(function() {
+                document.getElementById('gaia_loginform').submit();
             });
         }
         console.log("Sent password to google");
         waitFor({
             timeout: loginTimeout * 2,
             interval: 500,
-            check: function () {
+            check: function() {
                 return page.url != currentUrl;
             },
-            error: function () {
+            error: function() {
                 phantom.exit();
             },
-            success: function () {
+            success: function() {
                 googleLoginStep4(email, password, cookieFileName);
             }
         });
     },
 
-    googleLoginStep4 = function (email, password, cookieFileName) {
+    googleLoginStep4 = function(email, password, cookieFileName) {
         if (page.url.substring(0, 40) === 'https://accounts.google.com/ServiceLogin') {
             console.log("login failed: wrong email and/or password");
             phantom.exit();
@@ -180,7 +189,7 @@ var fs = require('fs'),
 
         if (page.url.substring(0, 40) === 'https://appengine.google.com/_ah/loginfo') {
             console.log("Gotta submit this form.");
-            page.evaluate(function () {
+            page.evaluate(function() {
                 document.getElementById('persist_checkbox').checked = true;
                 document.getElementsByTagName('form').submit();
             });
@@ -194,32 +203,32 @@ var fs = require('fs'),
         waitFor({
             timeout: loginTimeout * 2,
             interval: 500,
-            check: function () {
+            check: function() {
                 var expected = 'https://www.ingress.com/intel';
                 return page.url.substring(0, expected.length) === expected;
             },
-            error: function () {
+            error: function() {
                 console.log("Error waiting for redirect: " + page.url);
                 phantom.exit();
             },
-            success: function () {
+            success: function() {
                 afterLogin(cookieFileName);
             }
         });
     },
 
-    afterLogin = function (cookieFileName) {
+    afterLogin = function(cookieFileName) {
         console.log("Storing cookies for future activities");
         console.output(storeCookies(cookieFileName));
         console.output('eof bug here');
         loadCookies(cookieFileName);
     },
 
-    storeCookies = function (cookieFileName) {
+    storeCookies = function(cookieFileName) {
         fs.write(cookieFileName, JSON.stringify(page.cookies, null, 2), 'w');
     },
 
-    loadCookies = function (cookieFileName) {
+    loadCookies = function(cookieFileName) {
         var json, cookies, i, sacsid, csrftoken;
         if (!fs.exists(cookieFileName)) {
             return false;
@@ -247,7 +256,7 @@ var fs = require('fs'),
         return true;
     },
 
-    addCookies = function (sacsid, csrf) {
+    addCookies = function(sacsid, csrf) {
         phantom.addCookie({
             name: 'SACSID',
             value: sacsid,
@@ -264,7 +273,7 @@ var fs = require('fs'),
         });
     },
 
-    waitFor = function ($config) {
+    waitFor = function($config) {
         $config._start = $config._start || new Date();
         if ($config.timeout && new Date - $config._start > $config.timeout) {
             if ($config.error) $config.error();
@@ -276,51 +285,69 @@ var fs = require('fs'),
         setTimeout(waitFor, $config.interval || 0, $config);
     },
 
-    isSignedIn = function () {
-        return page.evaluate(function () {
+    isSignedIn = function() {
+        return page.evaluate(function() {
             return document.getElementsByTagName('a')[0].innerText.trim() !== 'Sign in';
         });
     },
 
     hideDebris = function() {
-      /*Todo check if it worked */
-      page.evaluate(function() {
-        var chat = document.querySelector('#chat');
-        var chatcontrols = document.querySelector('#chatcontrols');
-        var chatinput = document.querySelector('#chatinput');
-        var updatestatus = document.querySelector('#updatestatus');
-        var sidebartoggle = document.querySelector('#sidebartoggle');
-        var scrollwrapper = document.querySelector('#scrollwrapper');
-        var controlContainer = document.querySelector('.leaflet-control-container');
-        var highlight_select = document.querySelector('#portal_highlight_select');
-        var chat = document.querySelector('#chat');
+        /*Todo check if it worked */
+        page.evaluate(function() {
+            var chat = document.querySelector('#chat');
+            var chatcontrols = document.querySelector('#chatcontrols');
+            var chatinput = document.querySelector('#chatinput');
+            var updatestatus = document.querySelector('#updatestatus');
+            var sidebartoggle = document.querySelector('#sidebartoggle');
+            var scrollwrapper = document.querySelector('#scrollwrapper');
+            var controlContainer = document.querySelector('.leaflet-control-container');
+            var highlight_select = document.querySelector('#portal_highlight_select');
+            var chat = document.querySelector('#chat');
 
-        if (chat)         {chat.style.display = 'none';}
-        if (chatcontrols) {chatcontrols.tyle.display = 'none';}
-        if (chatinput)    {chatinput.style.display = 'none';}
-        if (updatestatus) {updatestatus.style.display = 'none';}
-        if (sidebartoggle){sidebartoggle.style.display = 'none';}
-        if (scrollwrapper){scrollwrapper.style.display = 'none';}
-        if (controlContainer) {controlContainer.style.display = 'none';}
-        if (highlight_select) {highlight_select.style.display = 'none';}
-        if (chat) {chat.style.display = 'none';}
-      });
+            if (chat) {
+                chat.style.display = 'none';
+            }
+            if (chatcontrols) {
+                chatcontrols.tyle.display = 'none';
+            }
+            if (chatinput) {
+                chatinput.style.display = 'none';
+            }
+            if (updatestatus) {
+                updatestatus.style.display = 'none';
+            }
+            if (sidebartoggle) {
+                sidebartoggle.style.display = 'none';
+            }
+            if (scrollwrapper) {
+                scrollwrapper.style.display = 'none';
+            }
+            if (controlContainer) {
+                controlContainer.style.display = 'none';
+            }
+            if (highlight_select) {
+                highlight_select.style.display = 'none';
+            }
+            if (chat) {
+                chat.style.display = 'none';
+            }
+        });
     },
     loadIitcPlugin = function(src) {
-      page.evaluate(function(src) {
-        var script = document.createElement('script');
-        script.type='text/javascript';
-        script.src=src;
-        document.head.insertBefore(script, document.head.lastChild);
-      }, src);
+        page.evaluate(function(src) {
+            var script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = src;
+            document.head.insertBefore(script, document.head.lastChild);
+        }, src);
     },
     loadLocalIitcPlugin = function(src) {
         page.injectJs(src)
     },
-    prepare = function (widthz, heightz) {
+    prepare = function(widthz, heightz) {
         page.evaluate(function(w, h) {
             var water = document.createElement('p');
-            water.id='viewport-ice';
+            water.id = 'viewport-ice';
             water.style.position = 'absolute';
             water.style.top = '0';
             water.style.marginTop = '0';
@@ -339,13 +366,13 @@ if (phantomArgs.length === 1) {
     phantom.exit();
 }
 
-setTimeout(function () {
+setTimeout(function() {
     window.console = log;
 
     if (phantomArgs.hasOwnProperty("debug") && phantomArgs.debug) {
         console.logEnabled = true;
 
-        page.onConsoleMessage = function (msg) {
+        page.onConsoleMessage = function(msg) {
             console.timedLog(msg);
         };
     }
@@ -357,14 +384,14 @@ setTimeout(function () {
     waitFor({
         timeout: 30000,
         interval: 1000,
-        check: function () {
+        check: function() {
             return cookiesLoaded;
         },
-        success: function () {
+        success: function() {
             console.log("Good to go!");
             window.dispatchEvent(authCompletedEvent);
         },
-        error: function () {
+        error: function() {
             console.log("Crap...");
         }
     });
