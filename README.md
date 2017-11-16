@@ -105,3 +105,8 @@ tar xvjf phantomjs-2.1.1-linux-x86_64.tar.bz2
 mv phantomjs-2.1.1-linux-x86_64 /usr/local/share
 ln -sf /usr/local/share/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/local/bin
 ```
+
+# Sponsoring
+<a target='_blank' rel='nofollow' href='https://app.codesponsor.io/link/pc1YAZAnXxNRhLY8PX5qJ9P3/MTRNord/intel_screenbot'>
+  <img alt='Sponsor' width='888' height='68' src='https://app.codesponsor.io/embed/pc1YAZAnXxNRhLY8PX5qJ9P3/MTRNord/intel_screenbot.svg' />
+</a>
